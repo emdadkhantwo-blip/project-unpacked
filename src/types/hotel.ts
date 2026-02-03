@@ -145,7 +145,7 @@ export interface Guest {
   is_blacklisted: boolean;
   blacklist_reason: string | null;
   corporate_account_id: string | null;
-  preferences: Record<string, any> | null;
+  preferences: Record<string, unknown> | null;
   total_stays: number;
   total_revenue: number;
   created_at: string;

@@ -177,8 +177,8 @@ interface RoomSelectorProps {
   reservationRoom: {
     id: string;
     room_id: string | null;
-    room_type: { id: string; name: string; code: string } | null;
-    room: { id: string; room_number: string } | null;
+    room_type?: { id: string; name: string; code: string } | null;
+    room?: { id: string; room_number: string } | null;
   };
   propertyId: string;
   selectedRoomId: string | null;

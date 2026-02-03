@@ -236,7 +236,7 @@ export function CorporateAccountDetailDrawer({
                     </div>
                     <div className="flex items-center gap-3 text-sm">
                       <Calendar className="h-4 w-4 text-muted-foreground" />
-                      <span>{getPaymentTermsLabel(account.payment_terms)}</span>
+                      <span>{String(account.payment_terms)} days</span>
                     </div>
                   </CardContent>
                 </Card>

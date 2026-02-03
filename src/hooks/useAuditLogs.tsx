@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 
+// Mock implementation - audit_logs table doesn't exist yet
 export interface AuditLog {
   id: string;
   tenant_id: string | null;
@@ -22,25 +22,11 @@ interface UseAuditLogsOptions {
 }
 
 export function useAuditLogs(options: UseAuditLogsOptions = {}) {
-  const { tenantId, limit = 50, offset = 0 } = options;
-
   return useQuery({
-    queryKey: ["audit-logs", tenantId, limit, offset],
-    queryFn: async () => {
-      let query = supabase
-        .from("audit_logs")
-        .select("*")
-        .order("created_at", { ascending: false })
-        .range(offset, offset + limit - 1);
-
-      if (tenantId) {
-        query = query.eq("tenant_id", tenantId);
-      }
-
-      const { data, error } = await query;
-
-      if (error) throw error;
-      return data as AuditLog[];
+    queryKey: ["audit-logs", options.tenantId, options.limit, options.offset],
+    queryFn: async (): Promise<AuditLog[]> => {
+      // Return empty array - audit_logs table not implemented yet
+      return [];
     },
   });
 }
@@ -48,19 +34,8 @@ export function useAuditLogs(options: UseAuditLogsOptions = {}) {
 export function useAuditLogCount(tenantId?: string) {
   return useQuery({
     queryKey: ["audit-logs-count", tenantId],
-    queryFn: async () => {
-      let query = supabase
-        .from("audit_logs")
-        .select("*", { count: "exact", head: true });
-
-      if (tenantId) {
-        query = query.eq("tenant_id", tenantId);
-      }
-
-      const { count, error } = await query;
-
-      if (error) throw error;
-      return count || 0;
+    queryFn: async (): Promise<number> => {
+      return 0;
     },
   });
 }

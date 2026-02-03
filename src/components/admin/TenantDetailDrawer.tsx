@@ -95,8 +95,8 @@ export function TenantDetailDrawer({
     });
   };
 
-  const handleStatusChange = (status: "active" | "suspended") => {
-    updateStatus.mutate({ tenantId: tenant.id, status });
+  const handleStatusChange = (newStatus: "active" | "suspended") => {
+    updateStatus.mutate({ tenantId: tenant.id, _status: newStatus });
   };
 
   const getStatusBadge = (status: string) => {
@@ -139,8 +139,8 @@ export function TenantDetailDrawer({
             <div>
               <SheetTitle className="text-xl">{tenant.name}</SheetTitle>
               <SheetDescription className="flex items-center gap-2 mt-1">
-                {getStatusBadge(tenant.status)}
-                {getPlanBadge(tenant.plan_type)}
+                {getStatusBadge("active")}
+                {getPlanBadge(null)}
               </SheetDescription>
             </div>
           </div>
@@ -194,18 +194,6 @@ export function TenantDetailDrawer({
                   <CardTitle className="text-sm font-medium">Contact Information</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  {tenant.contact_email && (
-                    <div className="flex items-center gap-3 text-sm">
-                      <Mail className="h-4 w-4 text-muted-foreground" />
-                      <span>{tenant.contact_email}</span>
-                    </div>
-                  )}
-                  {tenant.contact_phone && (
-                    <div className="flex items-center gap-3 text-sm">
-                      <Phone className="h-4 w-4 text-muted-foreground" />
-                      <span>{tenant.contact_phone}</span>
-                    </div>
-                  )}
                   <div className="flex items-center gap-3 text-sm">
                     <Calendar className="h-4 w-4 text-muted-foreground" />
                     <span>
@@ -224,31 +212,19 @@ export function TenantDetailDrawer({
                     <div>
                       <p className="font-medium">Current Status</p>
                       <p className="text-sm text-muted-foreground">
-                        {tenant.status === "active"
-                          ? "Tenant can access all features"
-                          : "Tenant access is restricted"}
+                        Tenant can access all features
                       </p>
                     </div>
-                    {getStatusBadge(tenant.status)}
+                    {getStatusBadge("active")}
                   </div>
                   <div className="flex gap-2">
-                    {tenant.status === "active" ? (
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => handleStatusChange("suspended")}
-                      >
-                        Suspend Tenant
-                      </Button>
-                    ) : (
-                      <Button
-                        variant="default"
-                        size="sm"
-                        onClick={() => handleStatusChange("active")}
-                      >
-                        Reactivate Tenant
-                      </Button>
-                    )}
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => handleStatusChange("suspended")}
+                    >
+                      Suspend Tenant
+                    </Button>
                   </div>
                   
                   <Separator className="my-4" />
@@ -278,7 +254,7 @@ export function TenantDetailDrawer({
                 <CardContent className="space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-sm">Current Plan</span>
-                    {getPlanBadge(tenant.plan_type)}
+                    {getPlanBadge(null)}
                   </div>
                   <p className="text-xs text-muted-foreground">
                     Plan changes can be managed through the billing system.

@@ -128,17 +128,9 @@ export function ApplicationDetailDrawer({
         <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
           <SheetHeader className="pb-4">
             <div className="flex items-center gap-4">
-              {application.logo_url ? (
-                <img
-                  src={application.logo_url}
-                  alt={application.hotel_name}
-                  className="h-16 w-16 rounded-xl object-cover border"
-                />
-              ) : (
-                <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-gradient-to-br from-purple-100 to-indigo-100 dark:from-purple-900/30 dark:to-indigo-900/30">
-                  <Building2 className="h-8 w-8 text-purple-600 dark:text-purple-400" />
-                </div>
-              )}
+              <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-gradient-to-br from-purple-100 to-indigo-100 dark:from-purple-900/30 dark:to-indigo-900/30">
+                <Building2 className="h-8 w-8 text-purple-600 dark:text-purple-400" />
+              </div>
               <div>
                 <SheetTitle className="text-xl">{application.hotel_name}</SheetTitle>
                 <SheetDescription>Application from {application.full_name}</SheetDescription>
@@ -200,49 +192,6 @@ export function ApplicationDetailDrawer({
 
             <Separator />
 
-            {/* Credentials */}
-            <div className="space-y-4">
-              <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">
-                Login Credentials
-              </h3>
-
-              <div className="grid gap-4">
-                <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
-                  <AtSign className="h-4 w-4 text-muted-foreground" />
-                  <div>
-                    <p className="text-xs text-muted-foreground">Username</p>
-                    <p className="font-medium font-mono">{application.username}</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between gap-3 p-3 rounded-lg bg-muted/50">
-                  <div className="flex items-center gap-3">
-                    <div className="h-4 w-4" />
-                    <div>
-                      <p className="text-xs text-muted-foreground">Password</p>
-                      <p className="font-medium font-mono">
-                        {showPassword ? application.password : "••••••••"}
-                      </p>
-                    </div>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="h-8 w-8"
-                  >
-                    {showPassword ? (
-                      <EyeOff className="h-4 w-4" />
-                    ) : (
-                      <Eye className="h-4 w-4" />
-                    )}
-                  </Button>
-                </div>
-              </div>
-            </div>
-
-            <Separator />
-
             {/* Timeline */}
             <div className="space-y-4">
               <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">
@@ -260,26 +209,26 @@ export function ApplicationDetailDrawer({
                   </div>
                 </div>
 
-                {application.reviewed_at && (
+                {application.status !== "pending" && (
                   <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
                     <CheckCircle className="h-4 w-4 text-muted-foreground" />
                     <div>
                       <p className="text-xs text-muted-foreground">Reviewed</p>
                       <p className="font-medium">
-                        {format(new Date(application.reviewed_at), "MMMM d, yyyy 'at' h:mm a")}
+                        {format(new Date(application.updated_at), "MMMM d, yyyy 'at' h:mm a")}
                       </p>
                     </div>
                   </div>
                 )}
               </div>
 
-              {application.rejection_reason && (
+              {application.status === "rejected" && application.notes && (
                 <div className="p-3 rounded-lg bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800">
                   <p className="text-xs text-rose-600 dark:text-rose-400 font-medium mb-1">
                     Rejection Reason
                   </p>
                   <p className="text-sm text-rose-700 dark:text-rose-300">
-                    {application.rejection_reason}
+                    {application.notes}
                   </p>
                 </div>
               )}

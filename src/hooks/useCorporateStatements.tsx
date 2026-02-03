@@ -51,15 +51,29 @@ export function useCorporateStatements(
     queryFn: async (): Promise<CorporateStatementData | null> => {
       if (!tenant || !accountId) return null;
 
-      // Fetch account details
-      const { data: account, error: accountError } = await supabase
+      // Fetch account details - use DB column names
+      const { data: accountData, error: accountError } = await supabase
         .from("corporate_accounts")
-        .select("id, company_name, account_code, contact_name, contact_email, contact_phone, billing_address, current_balance, credit_limit, payment_terms")
+        .select("id, name, code, contact_person, email, phone, address, current_balance, credit_limit, payment_terms")
         .eq("id", accountId)
         .eq("tenant_id", tenant.id)
         .single();
 
       if (accountError) throw accountError;
+
+      // Map DB fields to expected interface fields
+      const account = {
+        id: accountData.id,
+        company_name: accountData.name,
+        account_code: accountData.code,
+        contact_name: accountData.contact_person,
+        contact_email: accountData.email,
+        contact_phone: accountData.phone,
+        billing_address: accountData.address,
+        current_balance: Number(accountData.current_balance) || 0,
+        credit_limit: Number(accountData.credit_limit) || 0,
+        payment_terms: String(accountData.payment_terms || 30),
+      };
 
       // Build date filter
       const dateStart = startDate || startOfMonth(new Date());
@@ -141,15 +155,23 @@ export function useCorporateAccountsForSelect() {
     queryFn: async () => {
       if (!tenant) return [];
 
+      // Use DB column names
       const { data, error } = await supabase
         .from("corporate_accounts")
-        .select("id, company_name, account_code, current_balance")
+        .select("id, name, code, current_balance")
         .eq("tenant_id", tenant.id)
         .eq("is_active", true)
-        .order("company_name", { ascending: true });
+        .order("name", { ascending: true });
 
       if (error) throw error;
-      return data || [];
+      
+      // Map to expected interface
+      return (data || []).map(d => ({
+        id: d.id,
+        company_name: d.name,
+        account_code: d.code,
+        current_balance: Number(d.current_balance) || 0,
+      }));
     },
     enabled: !!tenant,
   });
