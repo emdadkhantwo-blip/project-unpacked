@@ -25,6 +25,7 @@ export type Database = {
           id: string
           logo_url: string | null
           notes: string | null
+          password: string | null
           phone: string | null
           property_count: number | null
           room_count: number | null
@@ -41,6 +42,7 @@ export type Database = {
           id?: string
           logo_url?: string | null
           notes?: string | null
+          password?: string | null
           phone?: string | null
           property_count?: number | null
           room_count?: number | null
@@ -57,6 +59,7 @@ export type Database = {
           id?: string
           logo_url?: string | null
           notes?: string | null
+          password?: string | null
           phone?: string | null
           property_count?: number | null
           room_count?: number | null
