@@ -2,15 +2,17 @@ import { createContext, useContext, ReactNode, useState, useEffect } from 'react
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 
-interface Tenant {
+export interface Tenant {
   id: string;
   name: string;
   slug: string;
-  status: string;
-  contact_email: string | null;
-  contact_phone: string | null;
   logo_url: string | null;
-  settings: Record<string, unknown>;
+  primary_color: string | null;
+  secondary_color: string | null;
+  currency: string | null;
+  timezone: string | null;
+  created_at: string;
+  updated_at: string;
 }
 
 interface Property {
@@ -18,13 +20,10 @@ interface Property {
   tenant_id: string;
   name: string;
   code: string;
-  status: string;
   city: string | null;
   country: string | null;
-  currency: string;
-  timezone: string;
-  tax_rate: number;
-  service_charge_rate: number;
+  tax_rate: number | null;
+  service_charge_rate: number | null;
 }
 
 interface Subscription {
@@ -104,21 +103,8 @@ export function TenantProvider({ children }: { children: ReactNode }) {
         }
       }
 
-      // Fetch subscription with plan
-      const { data: subData, error: subError } = await supabase
-        .from('subscriptions')
-        .select(`
-          *,
-          plan:plans(*)
-        `)
-        .eq('tenant_id', tenantId)
-        .maybeSingle();
-
-      if (subError) {
-        console.error('Error fetching subscription:', subError);
-      } else if (subData) {
-        setSubscription(subData as unknown as Subscription);
-      }
+      // Note: subscriptions and plans tables don't exist yet
+      // Skip subscription fetch for now
     } catch (error) {
       console.error('Error in fetchTenantData:', error);
     } finally {
@@ -138,13 +124,13 @@ export function TenantProvider({ children }: { children: ReactNode }) {
 
   const hasFeature = (feature: string): boolean => {
     if (isSuperAdmin) return true;
-    if (!subscription?.plan?.features) return false;
+    if (!subscription?.plan?.features) return true; // Default to allowing features
     return subscription.plan.features[feature] === true;
   };
 
   const isWithinLimit = (resource: 'properties' | 'staff' | 'rooms', currentCount: number): boolean => {
     if (isSuperAdmin) return true;
-    if (!subscription?.plan) return false;
+    if (!subscription?.plan) return true; // Default to allowing
 
     const limits = {
       properties: subscription.plan.max_properties,
