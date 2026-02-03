@@ -43,9 +43,9 @@ export function useCreateReservation() {
 
       if (propError) throw propError;
 
-      // Generate confirmation number
+      // Generate confirmation number using the function
       const { data: confirmationNumber, error: confError } = await supabase
-        .rpc("generate_confirmation_number", { property_code: property.code });
+        .rpc("generate_confirmation_number");
 
       if (confError) throw confError;
 
@@ -72,10 +72,8 @@ export function useCreateReservation() {
           children: input.children,
           source: input.source as any,
           special_requests: input.special_requests || null,
-          internal_notes: input.internal_notes || null,
+          notes: input.internal_notes || null,
           total_amount: totalAmount,
-          discount_amount: discountAmount,
-          reference_id: input.reference_id || null,
           status: "confirmed",
         })
         .select()
@@ -85,7 +83,6 @@ export function useCreateReservation() {
 
       // Create reservation rooms
       const reservationRooms = input.rooms.map((room) => ({
-        tenant_id: tenantId,
         reservation_id: reservation.id,
         room_type_id: room.room_type_id,
         room_id: room.room_id || null,
@@ -141,49 +138,8 @@ export function useCreateReservation() {
 
       if (folioError) throw folioError;
 
-      // Upload guest ID documents if provided
-      if (input.idFiles && input.idFiles.size > 0) {
-        const { data: userData } = await supabase.auth.getUser();
-        
-        for (const [guestNumber, fileData] of input.idFiles) {
-          const fileExtension = fileData.fileName.split('.').pop() || 'jpg';
-          const filePath = `${tenantId}/${reservation.id}/guest-${guestNumber}-${Date.now()}.${fileExtension}`;
-          
-          // Upload to storage
-          const { error: uploadError } = await supabase.storage
-            .from('guest-documents')
-            .upload(filePath, fileData.file);
-          
-          if (uploadError) {
-            console.error(`Failed to upload ID for guest ${guestNumber}:`, uploadError);
-            continue; // Don't fail the entire reservation for upload errors
-          }
-
-          // Get the URL (using signed URL for private bucket)
-          const { data: signedUrlData } = await supabase.storage
-            .from('guest-documents')
-            .createSignedUrl(filePath, 60 * 60 * 24 * 365); // 1 year expiry
-
-          const documentUrl = signedUrlData?.signedUrl || filePath;
-
-          // Insert record into reservation_guest_ids
-          const { error: insertError } = await supabase
-            .from('reservation_guest_ids')
-            .insert({
-              tenant_id: tenantId,
-              reservation_id: reservation.id,
-              guest_number: guestNumber,
-              document_url: documentUrl,
-              document_type: fileData.type,
-              file_name: fileData.fileName,
-              uploaded_by: userData?.user?.id || null,
-            });
-
-          if (insertError) {
-            console.error(`Failed to save ID record for guest ${guestNumber}:`, insertError);
-          }
-        }
-      }
+      // Skip guest ID document upload - reservation_guest_ids table doesn't exist yet
+      // This feature will be implemented when the table is created
 
       return reservation;
     },

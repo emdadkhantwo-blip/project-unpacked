@@ -22,18 +22,51 @@ export interface CorporateAccount {
   updated_at: string;
   // Computed
   linked_guests_count?: number;
+  // Aliases for backward compatibility with components
+  company_name: string;
+  account_code: string;
+  contact_name: string | null;
+  contact_email: string | null;
+  contact_phone: string | null;
+  billing_address: string | null;
+}
+
+// Transform DB row to CorporateAccount with aliases
+function transformCorporateAccount(row: any): CorporateAccount {
+  return {
+    ...row,
+    discount_percentage: Number(row.discount_percentage) || 0,
+    credit_limit: Number(row.credit_limit) || 0,
+    current_balance: Number(row.current_balance) || 0,
+    payment_terms: Number(row.payment_terms) || 30,
+    is_active: row.is_active ?? true,
+    // Aliases
+    company_name: row.name,
+    account_code: row.code,
+    contact_name: row.contact_person,
+    contact_email: row.email,
+    contact_phone: row.phone,
+    billing_address: row.address,
+  };
 }
 
 export interface CorporateAccountFormData {
-  name: string;
-  code: string;
+  // Accept both DB names and component names
+  name?: string;
+  code?: string;
+  company_name?: string;
+  account_code?: string;
   contact_person?: string;
+  contact_name?: string;
   email?: string;
+  contact_email?: string;
   phone?: string;
+  contact_phone?: string;
   address?: string;
+  billing_address?: string;
   discount_percentage?: number;
   credit_limit?: number;
-  payment_terms?: number;
+  payment_terms?: string | number;
   notes?: string;
   is_active?: boolean;
 }
@@ -67,10 +100,10 @@ export function useCorporateAccounts() {
         }
       });
 
-      return (data || []).map((account) => ({
+      return (data || []).map((account) => transformCorporateAccount({
         ...account,
         linked_guests_count: countMap.get(account.id) || 0,
-      })) as CorporateAccount[];
+      }));
     },
     enabled: !!tenant,
   });
@@ -92,7 +125,7 @@ export function useCorporateAccount(accountId: string | undefined) {
         .single();
 
       if (error) throw error;
-      return data as CorporateAccount;
+      return transformCorporateAccount(data);
     },
     enabled: !!accountId && !!tenant,
   });
@@ -161,7 +194,7 @@ export function useGuestCorporateAccounts(guestId: string | undefined) {
 
       if (error) throw error;
 
-      return (data || []) as CorporateAccount[];
+      return (data || []).map((account) => transformCorporateAccount(account));
     },
     enabled: !!guestId && !!tenant,
   });
@@ -176,17 +209,30 @@ export function useCreateCorporateAccount() {
     mutationFn: async (data: CorporateAccountFormData) => {
       if (!tenant) throw new Error("No tenant");
 
+      // Map component names to DB names
+      const insertData = {
+        tenant_id: tenant.id,
+        name: data.name || data.company_name || "",
+        code: data.code || data.account_code || "",
+        contact_person: data.contact_person || data.contact_name,
+        email: data.email || data.contact_email,
+        phone: data.phone || data.contact_phone,
+        address: data.address || data.billing_address,
+        discount_percentage: data.discount_percentage,
+        credit_limit: data.credit_limit,
+        payment_terms: typeof data.payment_terms === 'string' ? parseInt(data.payment_terms) || 30 : data.payment_terms,
+        notes: data.notes,
+        is_active: data.is_active,
+      };
+
       const { data: account, error } = await supabase
         .from("corporate_accounts")
-        .insert({
-          tenant_id: tenant.id,
-          ...data,
-        })
+        .insert(insertData)
         .select()
         .single();
 
       if (error) throw error;
-      return account;
+      return transformCorporateAccount(account);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["corporate-accounts"] });
@@ -217,9 +263,47 @@ export function useUpdateCorporateAccount() {
       accountId: string;
       data: Partial<CorporateAccountFormData>;
     }) => {
+      // Map component names to DB names
+      const updateData: Record<string, unknown> = {};
+      if (data.name !== undefined || data.company_name !== undefined) {
+        updateData.name = data.name || data.company_name;
+      }
+      if (data.code !== undefined || data.account_code !== undefined) {
+        updateData.code = data.code || data.account_code;
+      }
+      if (data.contact_person !== undefined || data.contact_name !== undefined) {
+        updateData.contact_person = data.contact_person || data.contact_name;
+      }
+      if (data.email !== undefined || data.contact_email !== undefined) {
+        updateData.email = data.email || data.contact_email;
+      }
+      if (data.phone !== undefined || data.contact_phone !== undefined) {
+        updateData.phone = data.phone || data.contact_phone;
+      }
+      if (data.address !== undefined || data.billing_address !== undefined) {
+        updateData.address = data.address || data.billing_address;
+      }
+      if (data.discount_percentage !== undefined) {
+        updateData.discount_percentage = data.discount_percentage;
+      }
+      if (data.credit_limit !== undefined) {
+        updateData.credit_limit = data.credit_limit;
+      }
+      if (data.payment_terms !== undefined) {
+        updateData.payment_terms = typeof data.payment_terms === 'string' 
+          ? parseInt(data.payment_terms) || 30 
+          : data.payment_terms;
+      }
+      if (data.notes !== undefined) {
+        updateData.notes = data.notes;
+      }
+      if (data.is_active !== undefined) {
+        updateData.is_active = data.is_active;
+      }
+
       const { error } = await supabase
         .from("corporate_accounts")
-        .update(data)
+        .update(updateData)
         .eq("id", accountId);
 
       if (error) throw error;
@@ -446,7 +530,7 @@ export function useCorporateAccountById(accountId: string | null) {
         .maybeSingle();
 
       if (error) throw error;
-      return data as CorporateAccount | null;
+      return data ? transformCorporateAccount(data) : null;
     },
     enabled: !!accountId && !!tenant,
   });

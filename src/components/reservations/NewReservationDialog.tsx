@@ -221,15 +221,12 @@ export function NewReservationDialog({ open, onOpenChange }: NewReservationDialo
   };
 
   // Auto-select corporate account when guest's corporate accounts are loaded
-  // If only one account, auto-select it. If multiple, user must choose.
+  // If only one account, auto-select it.
   useMemo(() => {
     if (watchedSource === "corporate" && guestCorporateAccounts.length > 0 && !selectedCorporateAccountId) {
-      // Auto-select if there's only one account, or select the primary one
-      const primaryAccount = guestCorporateAccounts.find(a => a.is_primary);
+      // Auto-select if there's only one account
       if (guestCorporateAccounts.length === 1) {
         setSelectedCorporateAccountId(guestCorporateAccounts[0].id);
-      } else if (primaryAccount) {
-        setSelectedCorporateAccountId(primaryAccount.id);
       }
     }
   }, [watchedSource, guestCorporateAccounts, selectedCorporateAccountId]);
@@ -707,11 +704,6 @@ export function NewReservationDialog({ open, onOpenChange }: NewReservationDialo
                                     {account.discount_percentage > 0 && (
                                       <Badge variant="secondary" className="text-xs">
                                         {account.discount_percentage}% off
-                                      </Badge>
-                                    )}
-                                    {account.is_primary && (
-                                      <Badge className="text-xs bg-primary/10 text-primary">
-                                        Primary
                                       </Badge>
                                     )}
                                   </div>
