@@ -1,0 +1,642 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 
+  HOTEL PMS DESIGN SYSTEM
+  Modern, Vibrant, Colorful - Cloudbeds-inspired theme
+  All colors are HSL
+*/
+
+@layer base {
+  :root {
+    /* Core palette - Light mode with vibrant colors */
+    --background: 220 20% 97%;
+    --foreground: 222 47% 11%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+
+    /* Primary - Electric Blue */
+    --primary: 217 91% 60%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Secondary - Soft purple */
+    --secondary: 262 83% 95%;
+    --secondary-foreground: 262 83% 35%;
+
+    --muted: 220 14% 94%;
+    --muted-foreground: 220 9% 46%;
+
+    --accent: 217 91% 95%;
+    --accent-foreground: 217 91% 40%;
+
+    --destructive: 350 89% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 220 14% 90%;
+    --input: 220 14% 90%;
+    --ring: 217 91% 60%;
+
+    --radius: 0.5rem;
+
+    /* Status colors - Vibrant */
+    --success: 160 84% 39%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
+    --info: 190 95% 45%;
+    --info-foreground: 0 0% 100%;
+
+    /* Vibrant accent colors */
+    --vibrant-blue: 217 91% 60%;
+    --vibrant-purple: 262 83% 58%;
+    --vibrant-green: 160 84% 39%;
+    --vibrant-amber: 38 92% 50%;
+    --vibrant-rose: 350 89% 60%;
+    --vibrant-cyan: 190 95% 45%;
+    --vibrant-indigo: 239 84% 67%;
+    --vibrant-pink: 330 81% 60%;
+    --vibrant-orange: 25 95% 53%;
+    --vibrant-teal: 168 76% 42%;
+
+    /* Room status colors - Vibrant */
+    --room-vacant: 160 84% 39%;
+    --room-occupied: 350 89% 60%;
+    --room-dirty: 38 92% 50%;
+    --room-maintenance: 262 83% 58%;
+    --room-out-of-order: 350 89% 60%;
+
+    /* Sidebar - Modern dark with gradient hint */
+    --sidebar-background: 222 47% 11%;
+    --sidebar-foreground: 220 20% 85%;
+    --sidebar-primary: 217 91% 60%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 222 47% 16%;
+    --sidebar-accent-foreground: 220 20% 95%;
+    --sidebar-border: 222 30% 18%;
+    --sidebar-ring: 217 91% 60%;
+    --sidebar-muted: 220 14% 55%;
+    
+    /* Gradients */
+    --gradient-primary-start: 217 91% 60%;
+    --gradient-primary-end: 262 83% 58%;
+    --gradient-success-start: 160 84% 39%;
+    --gradient-success-end: 168 76% 52%;
+    --gradient-warning-start: 38 92% 50%;
+    --gradient-warning-end: 25 95% 53%;
+    --gradient-danger-start: 350 89% 60%;
+    --gradient-danger-end: 330 81% 60%;
+    --gradient-info-start: 190 95% 45%;
+    --gradient-info-end: 217 91% 60%;
+  }
+
+  .dark {
+    --background: 222 47% 6%;
+    --foreground: 220 20% 95%;
+
+    --card: 222 47% 9%;
+    --card-foreground: 220 20% 95%;
+
+    --popover: 222 47% 9%;
+    --popover-foreground: 220 20% 95%;
+
+    --primary: 217 91% 60%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 262 83% 20%;
+    --secondary-foreground: 262 83% 85%;
+
+    --muted: 222 40% 15%;
+    --muted-foreground: 220 14% 60%;
+
+    --accent: 217 91% 20%;
+    --accent-foreground: 217 91% 85%;
+
+    --destructive: 350 89% 55%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 222 30% 18%;
+    --input: 222 30% 18%;
+    --ring: 217 91% 60%;
+
+    /* Dark mode sidebar */
+    --sidebar-background: 222 47% 5%;
+    --sidebar-foreground: 220 20% 80%;
+    --sidebar-primary: 217 91% 60%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 222 40% 12%;
+    --sidebar-accent-foreground: 220 20% 95%;
+    --sidebar-border: 222 30% 12%;
+    --sidebar-ring: 217 91% 60%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  /* Data-dense table styles */
+  .data-table {
+    @apply text-sm;
+  }
+
+  .data-table th {
+    @apply bg-muted/50 text-muted-foreground font-medium text-xs uppercase tracking-wider;
+  }
+
+  .data-table td {
+    @apply py-2;
+  }
+
+  /* Compact form controls */
+  .compact-input {
+    @apply h-8 text-sm;
+  }
+
+  /* Status badges */
+  .status-badge {
+    @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium;
+  }
+}
+
+@layer utilities {
+  .scrollbar-thin {
+    scrollbar-width: thin;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: hsl(var(--muted));
+    border-radius: 3px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: hsl(var(--muted-foreground) / 0.3);
+    border-radius: 3px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground) / 0.5);
+  }
+
+  /* Marquee animation for CTA section */
+  @keyframes marquee {
+    0% {
+      transform: translateX(0);
+    }
+    100% {
+      transform: translateX(-50%);
+    }
+  }
+
+  .animate-marquee {
+    animation: marquee 20s linear infinite;
+  }
+
+  /* Vibrant gradient backgrounds */
+  .bg-gradient-primary {
+    background: linear-gradient(135deg, hsl(var(--vibrant-blue)) 0%, hsl(var(--vibrant-purple)) 100%);
+  }
+
+  .bg-gradient-success {
+    background: linear-gradient(135deg, hsl(var(--vibrant-green)) 0%, hsl(var(--vibrant-teal)) 100%);
+  }
+
+  .bg-gradient-warning {
+    background: linear-gradient(135deg, hsl(var(--vibrant-amber)) 0%, hsl(var(--vibrant-orange)) 100%);
+  }
+
+  .bg-gradient-danger {
+    background: linear-gradient(135deg, hsl(var(--vibrant-rose)) 0%, hsl(var(--vibrant-pink)) 100%);
+  }
+
+  .bg-gradient-info {
+    background: linear-gradient(135deg, hsl(var(--vibrant-cyan)) 0%, hsl(var(--vibrant-blue)) 100%);
+  }
+
+  .bg-gradient-purple {
+    background: linear-gradient(135deg, hsl(var(--vibrant-purple)) 0%, hsl(var(--vibrant-pink)) 100%);
+  }
+
+  .bg-gradient-indigo {
+    background: linear-gradient(135deg, hsl(var(--vibrant-indigo)) 0%, hsl(var(--vibrant-purple)) 100%);
+  }
+
+  /* Gradient text */
+  .text-gradient-primary {
+    background: linear-gradient(135deg, hsl(var(--vibrant-blue)) 0%, hsl(var(--vibrant-purple)) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Card hover effects */
+  .card-hover {
+    @apply transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5;
+  }
+
+  /* Stat card styles with decorative elements */
+  .stat-card {
+    @apply relative overflow-hidden;
+  }
+
+  .stat-card::before {
+    content: "";
+    @apply absolute top-0 right-0 w-32 h-32 rounded-full opacity-10;
+    transform: translate(30%, -30%);
+  }
+
+  .stat-card-blue::before {
+    background: hsl(var(--vibrant-blue));
+  }
+
+  .stat-card-green::before {
+    background: hsl(var(--vibrant-green));
+  }
+
+  .stat-card-amber::before {
+    background: hsl(var(--vibrant-amber));
+  }
+
+  .stat-card-purple::before {
+    background: hsl(var(--vibrant-purple));
+  }
+
+  .stat-card-rose::before {
+    background: hsl(var(--vibrant-rose));
+  }
+
+  /* Glass effect for overlays */
+  .glass {
+    @apply bg-white/80 backdrop-blur-sm;
+  }
+
+  .dark .glass {
+    @apply bg-black/50 backdrop-blur-sm;
+  }
+
+  /* Vibrant status borders */
+  .border-status-vacant {
+    border-color: hsl(var(--room-vacant));
+  }
+  .border-status-occupied {
+    border-color: hsl(var(--room-occupied));
+  }
+  .border-status-dirty {
+    border-color: hsl(var(--room-dirty));
+  }
+  .border-status-maintenance {
+    border-color: hsl(var(--room-maintenance));
+  }
+  .border-status-ooo {
+    border-color: hsl(var(--room-out-of-order));
+  }
+
+  /* Vibrant text colors */
+  .text-vibrant-blue {
+    color: hsl(var(--vibrant-blue));
+  }
+  .text-vibrant-purple {
+    color: hsl(var(--vibrant-purple));
+  }
+  .text-vibrant-green {
+    color: hsl(var(--vibrant-green));
+  }
+  .text-vibrant-amber {
+    color: hsl(var(--vibrant-amber));
+  }
+  .text-vibrant-rose {
+    color: hsl(var(--vibrant-rose));
+  }
+  .text-vibrant-cyan {
+    color: hsl(var(--vibrant-cyan));
+  }
+  .text-vibrant-indigo {
+    color: hsl(var(--vibrant-indigo));
+  }
+
+  /* Vibrant background colors */
+  .bg-vibrant-blue {
+    background-color: hsl(var(--vibrant-blue));
+  }
+  .bg-vibrant-purple {
+    background-color: hsl(var(--vibrant-purple));
+  }
+  .bg-vibrant-green {
+    background-color: hsl(var(--vibrant-green));
+  }
+  .bg-vibrant-amber {
+    background-color: hsl(var(--vibrant-amber));
+  }
+  .bg-vibrant-rose {
+    background-color: hsl(var(--vibrant-rose));
+  }
+  .bg-vibrant-cyan {
+    background-color: hsl(var(--vibrant-cyan));
+  }
+  .bg-vibrant-indigo {
+    background-color: hsl(var(--vibrant-indigo));
+  }
+
+  /* Light vibrant backgrounds for icons/badges */
+  .bg-vibrant-blue-light {
+    background-color: hsl(var(--vibrant-blue) / 0.1);
+  }
+  .bg-vibrant-purple-light {
+    background-color: hsl(var(--vibrant-purple) / 0.1);
+  }
+  .bg-vibrant-green-light {
+    background-color: hsl(var(--vibrant-green) / 0.1);
+  }
+  .bg-vibrant-amber-light {
+    background-color: hsl(var(--vibrant-amber) / 0.1);
+  }
+  .bg-vibrant-rose-light {
+    background-color: hsl(var(--vibrant-rose) / 0.1);
+  }
+  .bg-vibrant-cyan-light {
+    background-color: hsl(var(--vibrant-cyan) / 0.1);
+  }
+  .bg-vibrant-indigo-light {
+    background-color: hsl(var(--vibrant-indigo) / 0.1);
+  }
+
+  /* Shimmer animation for loading states */
+  @keyframes shimmer {
+    0% {
+      background-position: -200% 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
+  }
+
+  .animate-shimmer {
+    background: linear-gradient(
+      90deg,
+      hsl(var(--muted)) 25%,
+      hsl(var(--muted-foreground) / 0.1) 50%,
+      hsl(var(--muted)) 75%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+  }
+
+  /* Pulse glow animation */
+  @keyframes pulse-glow {
+    0%, 100% {
+      box-shadow: 0 0 0 0 hsl(var(--primary) / 0.4);
+    }
+    50% {
+      box-shadow: 0 0 0 8px hsl(var(--primary) / 0);
+    }
+  }
+
+  .animate-pulse-glow {
+    animation: pulse-glow 2s infinite;
+  }
+
+  /* ============================================
+     NIGHT AUDIT - TWILIGHT THEME
+     A calming, immersive experience for end-of-day
+     ============================================ */
+  
+  /* Twilight color palette */
+  .twilight-deep {
+    background-color: hsl(230 45% 12%);
+  }
+  .twilight-mid {
+    background-color: hsl(230 35% 22%);
+  }
+  .twilight-soft {
+    background-color: hsl(230 30% 35%);
+  }
+  .twilight-glow {
+    color: hsl(38 80% 55%);
+  }
+  .twilight-text {
+    color: hsl(220 15% 90%);
+  }
+  .twilight-muted {
+    color: hsl(220 15% 60%);
+  }
+  .twilight-success {
+    color: hsl(160 60% 45%);
+  }
+  .twilight-accent {
+    color: hsl(262 60% 55%);
+  }
+
+  /* Twilight gradient backgrounds */
+  .bg-twilight-gradient {
+    background: linear-gradient(180deg, 
+      hsl(230 45% 12%) 0%, 
+      hsl(230 35% 18%) 50%,
+      hsl(250 35% 15%) 100%
+    );
+  }
+
+  .bg-twilight-card {
+    background: linear-gradient(145deg,
+      hsl(230 35% 16% / 0.9) 0%,
+      hsl(230 30% 12% / 0.95) 100%
+    );
+    backdrop-filter: blur(8px);
+  }
+
+  .bg-twilight-glow {
+    background: radial-gradient(
+      ellipse 80% 50% at 50% 0%,
+      hsl(262 60% 35% / 0.15) 0%,
+      transparent 70%
+    );
+  }
+
+  /* Soft amber attention pulse */
+  @keyframes gentle-pulse {
+    0%, 100% {
+      opacity: 0.6;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 1;
+      transform: scale(1.02);
+    }
+  }
+
+  .animate-gentle-pulse {
+    animation: gentle-pulse 3s ease-in-out infinite;
+  }
+
+  /* Phase transition animations */
+  @keyframes phase-enter {
+    0% {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-phase-enter {
+    animation: phase-enter 0.6s ease-out forwards;
+  }
+
+  /* Room charge row stagger */
+  @keyframes charge-row-enter {
+    0% {
+      opacity: 0;
+      transform: translateX(-10px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  .animate-charge-row {
+    animation: charge-row-enter 0.3s ease-out forwards;
+  }
+
+  /* Settling progress bar gradient */
+  @keyframes progress-shimmer {
+    0% {
+      background-position: -200% 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
+  }
+
+  .animate-progress-shimmer {
+    background: linear-gradient(
+      90deg,
+      hsl(262 60% 45%) 0%,
+      hsl(38 80% 55%) 50%,
+      hsl(262 60% 45%) 100%
+    );
+    background-size: 200% 100%;
+    animation: progress-shimmer 2s ease-in-out infinite;
+  }
+
+  /* Completion celebration */
+  @keyframes celebration-glow {
+    0% {
+      box-shadow: 0 0 0 0 hsl(160 60% 45% / 0.4),
+                  0 0 40px hsl(38 80% 55% / 0.2);
+    }
+    50% {
+      box-shadow: 0 0 30px 10px hsl(160 60% 45% / 0.2),
+                  0 0 60px hsl(38 80% 55% / 0.3);
+    }
+    100% {
+      box-shadow: 0 0 0 0 hsl(160 60% 45% / 0.4),
+                  0 0 40px hsl(38 80% 55% / 0.2);
+    }
+  }
+
+  .animate-celebration-glow {
+    animation: celebration-glow 2s ease-in-out infinite;
+  }
+
+  /* Stars floating effect */
+  @keyframes float-star {
+    0%, 100% {
+      opacity: 0.3;
+      transform: translateY(0) scale(0.8);
+    }
+    50% {
+      opacity: 0.8;
+      transform: translateY(-10px) scale(1);
+    }
+  }
+
+  .animate-float-star {
+    animation: float-star 4s ease-in-out infinite;
+  }
+
+  /* Moon to sun transition */
+  @keyframes moon-to-sun {
+    0% {
+      filter: hue-rotate(0deg);
+      opacity: 0.8;
+    }
+    50% {
+      filter: hue-rotate(30deg);
+      opacity: 1;
+    }
+    100% {
+      filter: hue-rotate(45deg);
+      opacity: 1;
+    }
+  }
+
+  .animate-moon-to-sun {
+    animation: moon-to-sun 3s ease-out forwards;
+  }
+
+  /* KPI card spring entrance */
+  @keyframes spring-in {
+    0% {
+      opacity: 0;
+      transform: scale(0.8) translateY(20px);
+    }
+    60% {
+      transform: scale(1.05) translateY(-5px);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+  }
+
+  .animate-spring-in {
+    animation: spring-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  }
+
+  /* Gentle border glow for attention items */
+  .border-glow-amber {
+    box-shadow: 0 0 0 1px hsl(38 80% 55% / 0.3),
+                0 0 15px hsl(38 80% 55% / 0.15);
+  }
+
+  .border-glow-success {
+    box-shadow: 0 0 0 1px hsl(160 60% 45% / 0.3),
+                0 0 15px hsl(160 60% 45% / 0.15);
+  }
+
+  .border-glow-purple {
+    box-shadow: 0 0 0 1px hsl(262 60% 55% / 0.3),
+                0 0 15px hsl(262 60% 55% / 0.15);
+  }
+
+  /* Reduced motion support */
+  @media (prefers-reduced-motion: reduce) {
+    .animate-gentle-pulse,
+    .animate-phase-enter,
+    .animate-charge-row,
+    .animate-progress-shimmer,
+    .animate-celebration-glow,
+    .animate-float-star,
+    .animate-moon-to-sun,
+    .animate-spring-in {
+      animation: none;
+    }
+  }
+}

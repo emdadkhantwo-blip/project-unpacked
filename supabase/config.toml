@@ -1,0 +1,19 @@
+project_id = "mzgyeslseqtvmqgufyue"
+
+[functions.create-staff]
+verify_jwt = false
+
+[functions.delete-staff]
+verify_jwt = false
+
+[functions.reset-staff-password]
+verify_jwt = false
+
+[functions.admin-chat]
+verify_jwt = false
+
+[functions.approve-application]
+verify_jwt = false
+
+[functions.send-corporate-billing-email]
+verify_jwt = false
