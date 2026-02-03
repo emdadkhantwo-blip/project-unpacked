@@ -7,6 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth, getRoleDashboard } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import beehotelLogo from '@/assets/beehotel-logo.png';
@@ -18,11 +19,25 @@ const loginSchema = z.object({
 
 type LoginFormData = z.infer<typeof loginSchema>;
 
+const signupSchema = z
+  .object({
+    email: z.string().email('A valid email is required').max(255),
+    password: z.string().min(6, 'Password must be at least 6 characters').max(100),
+    confirmPassword: z.string().min(6, 'Please confirm your password').max(100),
+  })
+  .refine((val) => val.password === val.confirmPassword, {
+    path: ['confirmPassword'],
+    message: 'Passwords do not match',
+  });
+
+type SignupFormData = z.infer<typeof signupSchema>;
+
 export default function Auth() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [waitingForRoles, setWaitingForRoles] = useState(false);
-  const { signIn, user, roles } = useAuth();
+  const [mode, setMode] = useState<'signin' | 'signup'>('signin');
+  const { signIn, signUp, user, roles } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -50,6 +65,11 @@ export default function Auth() {
     defaultValues: { username: '', password: '' },
   });
 
+  const signupForm = useForm<SignupFormData>({
+    resolver: zodResolver(signupSchema),
+    defaultValues: { email: '', password: '', confirmPassword: '' },
+  });
+
   const handleLogin = async (data: LoginFormData) => {
     setIsLoading(true);
     const { error } = await signIn(data.username, data.password);
@@ -70,6 +90,33 @@ export default function Auth() {
         description: 'Redirecting to your dashboard...',
       });
     }
+  };
+
+  const handleSignup = async (data: SignupFormData) => {
+    setIsLoading(true);
+    const { error } = await signUp(data.email, data.password);
+    setIsLoading(false);
+
+    if (error) {
+      toast({
+        variant: 'destructive',
+        title: 'Sign up failed',
+        description: error.message,
+      });
+      return;
+    }
+
+    toast({
+      title: 'Account created',
+      description:
+        'Check your email to confirm your account (if required), then sign in.',
+    });
+
+    // Pre-fill login with the same email and switch to sign in
+    loginForm.setValue('username', data.email);
+    loginForm.setValue('password', '');
+    signupForm.reset({ email: data.email, password: '', confirmPassword: '' });
+    setMode('signin');
   };
 
   return (
@@ -137,72 +184,171 @@ export default function Auth() {
           {/* Login Card */}
           <div className="rounded-2xl border bg-card p-8 shadow-xl">
             <div className="mb-6">
-              <h2 className="text-2xl font-bold text-foreground">Welcome back</h2>
+              <h2 className="text-2xl font-bold text-foreground">
+                {mode === 'signin' ? 'Welcome back' : 'Create your account'}
+              </h2>
               <p className="mt-1 text-muted-foreground">
-                Enter your credentials to access your dashboard
+                {mode === 'signin'
+                  ? 'Enter your credentials to access your dashboard'
+                  : 'Sign up with email and password to get started'}
               </p>
             </div>
 
-            <form onSubmit={loginForm.handleSubmit(handleLogin)} className="space-y-5">
-              <div className="space-y-2">
-                <Label htmlFor="username" className="text-sm font-medium">
-                  Username or Email
-                </Label>
-                <Input
-                  id="username"
-                  placeholder="Enter your username"
-                  {...loginForm.register('username')}
-                  className="h-12 rounded-xl border-muted-foreground/20 bg-muted/50 px-4 transition-all focus:bg-background focus:ring-2 focus:ring-primary/20"
-                />
-                {loginForm.formState.errors.username && (
-                  <p className="text-xs text-destructive">
-                    {loginForm.formState.errors.username.message}
-                  </p>
-                )}
-              </div>
+            <Tabs value={mode} onValueChange={(v) => setMode(v as 'signin' | 'signup')} className="space-y-6">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="signin">Sign in</TabsTrigger>
+                <TabsTrigger value="signup">Sign up</TabsTrigger>
+              </TabsList>
 
-              <div className="space-y-2">
-                <Label htmlFor="password" className="text-sm font-medium">
-                  Password
-                </Label>
-                <div className="relative">
-                  <Input
-                    id="password"
-                    type={showPassword ? 'text' : 'password'}
-                    placeholder="Enter your password"
-                    {...loginForm.register('password')}
-                    className="h-12 rounded-xl border-muted-foreground/20 bg-muted/50 px-4 pr-12 transition-all focus:bg-background focus:ring-2 focus:ring-primary/20"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+              <TabsContent value="signin">
+                <form onSubmit={loginForm.handleSubmit(handleLogin)} className="space-y-5">
+                  <div className="space-y-2">
+                    <Label htmlFor="username" className="text-sm font-medium">
+                      Email
+                    </Label>
+                    <Input
+                      id="username"
+                      placeholder="name@company.com"
+                      autoComplete="email"
+                      {...loginForm.register('username')}
+                      className="h-12 rounded-xl border-muted-foreground/20 bg-muted/50 px-4 transition-all focus:bg-background focus:ring-2 focus:ring-primary/20"
+                    />
+                    {loginForm.formState.errors.username && (
+                      <p className="text-xs text-destructive">
+                        {loginForm.formState.errors.username.message}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="password" className="text-sm font-medium">
+                      Password
+                    </Label>
+                    <div className="relative">
+                      <Input
+                        id="password"
+                        type={showPassword ? 'text' : 'password'}
+                        placeholder="Enter your password"
+                        autoComplete="current-password"
+                        {...loginForm.register('password')}
+                        className="h-12 rounded-xl border-muted-foreground/20 bg-muted/50 px-4 pr-12 transition-all focus:bg-background focus:ring-2 focus:ring-primary/20"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                      </button>
+                    </div>
+                    {loginForm.formState.errors.password && (
+                      <p className="text-xs text-destructive">
+                        {loginForm.formState.errors.password.message}
+                      </p>
+                    )}
+                  </div>
+
+                  <Button
+                    type="submit"
+                    className="w-full h-12 rounded-xl text-base font-semibold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all"
+                    disabled={isLoading}
                   >
-                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                  </button>
-                </div>
-                {loginForm.formState.errors.password && (
-                  <p className="text-xs text-destructive">
-                    {loginForm.formState.errors.password.message}
-                  </p>
-                )}
-              </div>
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                        Signing in...
+                      </>
+                    ) : (
+                      'Sign In'
+                    )}
+                  </Button>
+                </form>
+              </TabsContent>
 
-              <Button 
-                type="submit" 
-                className="w-full h-12 rounded-xl text-base font-semibold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all" 
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                    Signing in...
-                  </>
-                ) : (
-                  'Sign In'
-                )}
-              </Button>
-            </form>
+              <TabsContent value="signup">
+                <form onSubmit={signupForm.handleSubmit(handleSignup)} className="space-y-5">
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-email" className="text-sm font-medium">
+                      Email
+                    </Label>
+                    <Input
+                      id="signup-email"
+                      placeholder="name@company.com"
+                      autoComplete="email"
+                      {...signupForm.register('email')}
+                      className="h-12 rounded-xl border-muted-foreground/20 bg-muted/50 px-4 transition-all focus:bg-background focus:ring-2 focus:ring-primary/20"
+                    />
+                    {signupForm.formState.errors.email && (
+                      <p className="text-xs text-destructive">
+                        {signupForm.formState.errors.email.message}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-password" className="text-sm font-medium">
+                      Password
+                    </Label>
+                    <div className="relative">
+                      <Input
+                        id="signup-password"
+                        type={showPassword ? 'text' : 'password'}
+                        placeholder="Create a password"
+                        autoComplete="new-password"
+                        {...signupForm.register('password')}
+                        className="h-12 rounded-xl border-muted-foreground/20 bg-muted/50 px-4 pr-12 transition-all focus:bg-background focus:ring-2 focus:ring-primary/20"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                      </button>
+                    </div>
+                    {signupForm.formState.errors.password && (
+                      <p className="text-xs text-destructive">
+                        {signupForm.formState.errors.password.message}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-confirm" className="text-sm font-medium">
+                      Confirm password
+                    </Label>
+                    <Input
+                      id="signup-confirm"
+                      type={showPassword ? 'text' : 'password'}
+                      placeholder="Re-enter password"
+                      autoComplete="new-password"
+                      {...signupForm.register('confirmPassword')}
+                      className="h-12 rounded-xl border-muted-foreground/20 bg-muted/50 px-4 transition-all focus:bg-background focus:ring-2 focus:ring-primary/20"
+                    />
+                    {signupForm.formState.errors.confirmPassword && (
+                      <p className="text-xs text-destructive">
+                        {signupForm.formState.errors.confirmPassword.message}
+                      </p>
+                    )}
+                  </div>
+
+                  <Button
+                    type="submit"
+                    className="w-full h-12 rounded-xl text-base font-semibold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all"
+                    disabled={isLoading}
+                  >
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                        Creating account...
+                      </>
+                    ) : (
+                      'Create Account'
+                    )}
+                  </Button>
+                </form>
+              </TabsContent>
+            </Tabs>
 
             {/* Security Badge */}
             <div className="mt-6 flex items-center justify-center gap-2 text-xs text-muted-foreground">
