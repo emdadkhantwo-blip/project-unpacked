@@ -2812,6 +2812,13 @@ export type Database = {
         Args: { property_code: string }
         Returns: string
       }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
       app_role:
@@ -2823,6 +2830,7 @@ export type Database = {
         | "kitchen"
         | "waiter"
         | "pos"
+        | "superadmin"
       folio_item_type:
         | "room_charge"
         | "food_beverage"
@@ -2998,6 +3006,7 @@ export const Constants = {
         "kitchen",
         "waiter",
         "pos",
+        "superadmin",
       ],
       folio_item_type: [
         "room_charge",
