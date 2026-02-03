@@ -6,11 +6,9 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import { Plus, Trash2, Building2, User, FileX } from 'lucide-react';
+import { Plus, Trash2, Building2, User, FileX, Construction } from 'lucide-react';
 import { useCorporateAccounts } from '@/hooks/useCorporateAccounts';
 import { useTaxConfigurations } from '@/hooks/useTaxConfigurations';
-import { supabase } from '@/integrations/supabase/client';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 
@@ -18,12 +16,25 @@ interface TaxExemptionManagerProps {
   propertyId: string;
 }
 
+interface TaxExemption {
+  id: string;
+  tax_configuration_id: string;
+  entity_type: 'corporate_account' | 'guest';
+  entity_id: string;
+  exemption_type: 'full' | 'partial';
+  exemption_rate: number;
+  valid_from: string | null;
+  valid_until: string | null;
+  notes: string | null;
+  tax_configuration?: { name: string; code: string };
+}
+
 export default function TaxExemptionManager({ propertyId }: TaxExemptionManagerProps) {
-  const queryClient = useQueryClient();
   const corporateAccountsQuery = useCorporateAccounts();
   const corporateAccounts = corporateAccountsQuery.data || [];
   const { taxConfigurations } = useTaxConfigurations();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [exemptions, setExemptions] = useState<TaxExemption[]>([]);
   const [formData, setFormData] = useState({
     tax_configuration_id: '',
     entity_type: 'corporate_account' as 'corporate_account' | 'guest',
@@ -33,73 +44,6 @@ export default function TaxExemptionManager({ propertyId }: TaxExemptionManagerP
     valid_from: '',
     valid_until: '',
     notes: '',
-  });
-
-  // Fetch exemptions
-  const { data: exemptions, isLoading } = useQuery({
-    queryKey: ['tax-exemptions', propertyId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('tax_exemptions')
-        .select(`
-          *,
-          tax_configuration:tax_configurations(name, code)
-        `)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!propertyId,
-  });
-
-  // Create exemption mutation
-  const createMutation = useMutation({
-    mutationFn: async (data: any) => {
-      const { data: profile } = await supabase.auth.getUser();
-      const { data: userProfile } = await supabase
-        .from('profiles')
-        .select('tenant_id')
-        .eq('id', profile.user?.id)
-        .single();
-
-      const { error } = await supabase
-        .from('tax_exemptions')
-        .insert({
-          ...data,
-          tenant_id: userProfile?.tenant_id,
-        });
-
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['tax-exemptions'] });
-      toast.success('Exemption created');
-      setIsDialogOpen(false);
-      resetForm();
-    },
-    onError: () => {
-      toast.error('Failed to create exemption');
-    },
-  });
-
-  // Delete exemption mutation
-  const deleteMutation = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from('tax_exemptions')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['tax-exemptions'] });
-      toast.success('Exemption removed');
-    },
-    onError: () => {
-      toast.error('Failed to remove exemption');
-    },
   });
 
   const resetForm = () => {
@@ -122,7 +66,9 @@ export default function TaxExemptionManager({ propertyId }: TaxExemptionManagerP
       return;
     }
 
-    createMutation.mutate({
+    const taxConfig = taxConfigurations?.find(t => t.id === formData.tax_configuration_id);
+    const newExemption: TaxExemption = {
+      id: crypto.randomUUID(),
       tax_configuration_id: formData.tax_configuration_id,
       entity_type: formData.entity_type,
       entity_id: formData.entity_id,
@@ -131,24 +77,27 @@ export default function TaxExemptionManager({ propertyId }: TaxExemptionManagerP
       valid_from: formData.valid_from || null,
       valid_until: formData.valid_until || null,
       notes: formData.notes || null,
-    });
+      tax_configuration: taxConfig ? { name: taxConfig.name, code: taxConfig.code } : undefined,
+    };
+
+    setExemptions([newExemption, ...exemptions]);
+    toast.success('Exemption created (local only - database table not yet available)');
+    setIsDialogOpen(false);
+    resetForm();
   };
 
-  const getEntityName = (exemption: any) => {
+  const handleDelete = (id: string) => {
+    setExemptions(exemptions.filter(e => e.id !== id));
+    toast.success('Exemption removed');
+  };
+
+  const getEntityName = (exemption: TaxExemption) => {
     if (exemption.entity_type === 'corporate_account') {
       const account = corporateAccounts?.find((a: any) => a.id === exemption.entity_id);
-      return account?.company_name || 'Unknown Company';
+      return account?.name || 'Unknown Company';
     }
     return 'Guest';
   };
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-32">
-        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-4">
@@ -165,7 +114,17 @@ export default function TaxExemptionManager({ propertyId }: TaxExemptionManagerP
         </Button>
       </div>
 
-      {(!exemptions || exemptions.length === 0) ? (
+      {/* Coming Soon Notice */}
+      <Card className="border-amber-500/50 bg-amber-50/50 dark:bg-amber-950/20">
+        <CardContent className="flex items-center gap-3 py-4">
+          <Construction className="h-5 w-5 text-amber-600" />
+          <p className="text-sm text-amber-800 dark:text-amber-200">
+            Tax exemptions database table coming soon. Data is stored locally for now.
+          </p>
+        </CardContent>
+      </Card>
+
+      {exemptions.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
             <FileX className="h-12 w-12 text-muted-foreground mb-4" />
@@ -177,7 +136,7 @@ export default function TaxExemptionManager({ propertyId }: TaxExemptionManagerP
         </Card>
       ) : (
         <div className="space-y-3">
-          {exemptions.map((exemption: any) => (
+          {exemptions.map((exemption) => (
             <Card key={exemption.id}>
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
@@ -210,7 +169,7 @@ export default function TaxExemptionManager({ propertyId }: TaxExemptionManagerP
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() => deleteMutation.mutate(exemption.id)}
+                    onClick={() => handleDelete(exemption.id)}
                     className="text-destructive hover:text-destructive"
                   >
                     <Trash2 className="h-4 w-4" />
@@ -281,7 +240,7 @@ export default function TaxExemptionManager({ propertyId }: TaxExemptionManagerP
                   <SelectContent>
                     {corporateAccounts?.map((account: any) => (
                       <SelectItem key={account.id} value={account.id}>
-                        {account.company_name} ({account.account_code})
+                        {account.name} ({account.code})
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -352,8 +311,8 @@ export default function TaxExemptionManager({ propertyId }: TaxExemptionManagerP
               <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={createMutation.isPending}>
-                {createMutation.isPending ? 'Creating...' : 'Create Exemption'}
+              <Button type="submit">
+                Create Exemption
               </Button>
             </DialogFooter>
           </form>

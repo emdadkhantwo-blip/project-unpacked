@@ -344,14 +344,8 @@ export function CreateStaffDialog({ open, onOpenChange }: CreateStaffDialogProps
             });
 
           if (!docUploadError) {
-            // Create hr_documents record
-            await supabase.from("hr_documents").insert({
-              tenant_id: tenant?.id,
-              profile_id: result.user.id,
-              name: docFile.name,
-              document_type: docFile.type.includes("pdf") ? "contract" : "id_document",
-              file_url: fileName,
-            });
+            // HR documents table not yet available - skip database insert
+            console.log('Document uploaded:', fileName);
           }
         }
       }

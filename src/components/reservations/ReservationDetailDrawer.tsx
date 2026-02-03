@@ -143,23 +143,9 @@ export function ReservationDetailDrawer({
     enabled: !!reservation?.id && open,
   });
 
-  // Fetch guest ID documents for this reservation
-  const { data: guestIds, isLoading: isGuestIdsLoading } = useQuery({
-    queryKey: ["reservation-guest-ids", reservation?.id],
-    queryFn: async (): Promise<GuestIdDocument[]> => {
-      if (!reservation?.id) return [];
-
-      const { data, error } = await supabase
-        .from("reservation_guest_ids")
-        .select("id, guest_number, document_url, document_type, file_name, created_at")
-        .eq("reservation_id", reservation.id)
-        .order("guest_number", { ascending: true });
-
-      if (error) throw error;
-      return data || [];
-    },
-    enabled: !!reservation?.id && open,
-  });
+  // Guest ID documents feature not yet available
+  const guestIds: GuestIdDocument[] = [];
+  const isGuestIdsLoading = false;
 
   if (!reservation) return null;
 

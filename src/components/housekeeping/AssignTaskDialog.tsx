@@ -101,7 +101,7 @@ export function AssignTaskDialog({ open, onOpenChange, task }: AssignTaskDialogP
                 </div>
                 <div className="flex-1 text-left">
                   <p className="font-medium">{member.full_name || member.username}</p>
-                  <p className="text-xs text-muted-foreground">{member.email}</p>
+                  <p className="text-xs text-muted-foreground">{member.department || 'Housekeeping'}</p>
                 </div>
                 {task.assigned_to === member.id && (
                   <Check className="h-4 w-4 text-primary" />

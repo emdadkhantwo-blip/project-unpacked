@@ -5,13 +5,19 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Plus, Trash2, Image, GripVertical } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Plus, Trash2, Image, Construction } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface WebsiteGalleryManagerProps {
   websiteId: string;
+}
+
+interface GalleryImage {
+  id: string;
+  image_url: string;
+  caption: string;
+  category: string;
+  sort_order: number;
 }
 
 const CATEGORIES = [
@@ -24,76 +30,13 @@ const CATEGORIES = [
 ];
 
 export default function WebsiteGalleryManager({ websiteId }: WebsiteGalleryManagerProps) {
-  const queryClient = useQueryClient();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [images, setImages] = useState<GalleryImage[]>([]);
   const [formData, setFormData] = useState({
     image_url: '',
     caption: '',
     category: 'rooms',
-  });
-
-  // Fetch gallery images
-  const { data: images, isLoading } = useQuery({
-    queryKey: ['website-gallery', websiteId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('website_gallery')
-        .select('*')
-        .eq('website_id', websiteId)
-        .order('sort_order', { ascending: true });
-
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!websiteId,
-  });
-
-  // Add image mutation
-  const addMutation = useMutation({
-    mutationFn: async (data: any) => {
-      const maxOrder = images?.reduce((max, img) => Math.max(max, img.sort_order || 0), 0) || 0;
-      
-      const { error } = await supabase
-        .from('website_gallery')
-        .insert({
-          website_id: websiteId,
-          image_url: data.image_url,
-          caption: data.caption,
-          category: data.category,
-          sort_order: maxOrder + 1,
-        });
-
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['website-gallery'] });
-      toast.success('Image added to gallery');
-      setIsDialogOpen(false);
-      setFormData({ image_url: '', caption: '', category: 'rooms' });
-    },
-    onError: () => {
-      toast.error('Failed to add image');
-    },
-  });
-
-  // Delete image mutation
-  const deleteMutation = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from('website_gallery')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['website-gallery'] });
-      toast.success('Image removed');
-    },
-    onError: () => {
-      toast.error('Failed to remove image');
-    },
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -102,20 +45,30 @@ export default function WebsiteGalleryManager({ websiteId }: WebsiteGalleryManag
       toast.error('Please enter an image URL');
       return;
     }
-    addMutation.mutate(formData);
+
+    const maxOrder = images.reduce((max, img) => Math.max(max, img.sort_order || 0), 0);
+    const newImage: GalleryImage = {
+      id: crypto.randomUUID(),
+      image_url: formData.image_url,
+      caption: formData.caption,
+      category: formData.category,
+      sort_order: maxOrder + 1,
+    };
+
+    setImages([...images, newImage]);
+    toast.success('Image added to gallery (local only - database table not yet available)');
+    setIsDialogOpen(false);
+    setFormData({ image_url: '', caption: '', category: 'rooms' });
+  };
+
+  const handleDelete = (id: string) => {
+    setImages(images.filter(img => img.id !== id));
+    toast.success('Image removed');
   };
 
   const filteredImages = selectedCategory === 'all'
     ? images
-    : images?.filter(img => img.category === selectedCategory);
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-32">
-        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
+    : images.filter(img => img.category === selectedCategory);
 
   return (
     <div className="space-y-4">
@@ -147,7 +100,17 @@ export default function WebsiteGalleryManager({ websiteId }: WebsiteGalleryManag
         </div>
       </div>
 
-      {(!filteredImages || filteredImages.length === 0) ? (
+      {/* Coming Soon Notice */}
+      <Card className="border-amber-500/50 bg-amber-50/50 dark:bg-amber-950/20">
+        <CardContent className="flex items-center gap-3 py-4">
+          <Construction className="h-5 w-5 text-amber-600" />
+          <p className="text-sm text-amber-800 dark:text-amber-200">
+            Website gallery database table coming soon. Data is stored locally for now.
+          </p>
+        </CardContent>
+      </Card>
+
+      {filteredImages.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
             <Image className="h-12 w-12 text-muted-foreground mb-4" />
@@ -170,7 +133,7 @@ export default function WebsiteGalleryManager({ websiteId }: WebsiteGalleryManag
                 <Button
                   variant="destructive"
                   size="icon"
-                  onClick={() => deleteMutation.mutate(image.id)}
+                  onClick={() => handleDelete(image.id)}
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>
@@ -250,8 +213,8 @@ export default function WebsiteGalleryManager({ websiteId }: WebsiteGalleryManag
               <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={addMutation.isPending}>
-                {addMutation.isPending ? 'Adding...' : 'Add Image'}
+              <Button type="submit">
+                Add Image
               </Button>
             </DialogFooter>
           </form>
