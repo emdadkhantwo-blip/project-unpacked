@@ -28,6 +28,8 @@ export type Database = {
           password: string | null
           phone: string | null
           property_count: number | null
+          reviewed_at: string | null
+          reviewed_by: string | null
           room_count: number | null
           status: string | null
           updated_at: string
@@ -46,6 +48,8 @@ export type Database = {
           password?: string | null
           phone?: string | null
           property_count?: number | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           room_count?: number | null
           status?: string | null
           updated_at?: string
@@ -64,6 +68,8 @@ export type Database = {
           password?: string | null
           phone?: string | null
           property_count?: number | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           room_count?: number | null
           status?: string | null
           updated_at?: string
@@ -259,6 +265,38 @@ export type Database = {
           },
           {
             foreignKeyName: "daily_rates_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      feature_flags: {
+        Row: {
+          created_at: string
+          feature_name: string
+          id: string
+          is_enabled: boolean
+          tenant_id: string
+        }
+        Insert: {
+          created_at?: string
+          feature_name: string
+          id?: string
+          is_enabled?: boolean
+          tenant_id: string
+        }
+        Update: {
+          created_at?: string
+          feature_name?: string
+          id?: string
+          is_enabled?: boolean
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feature_flags_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
@@ -1806,12 +1844,15 @@ export type Database = {
       }
       profiles: {
         Row: {
+          auth_email: string | null
           avatar_url: string | null
           created_at: string
           department: string | null
+          email: string | null
           full_name: string | null
           id: string
           is_active: boolean | null
+          must_change_password: boolean | null
           phone: string | null
           property_id: string | null
           role: string | null
@@ -1821,12 +1862,15 @@ export type Database = {
           username: string
         }
         Insert: {
+          auth_email?: string | null
           avatar_url?: string | null
           created_at?: string
           department?: string | null
+          email?: string | null
           full_name?: string | null
           id: string
           is_active?: boolean | null
+          must_change_password?: boolean | null
           phone?: string | null
           property_id?: string | null
           role?: string | null
@@ -1836,12 +1880,15 @@ export type Database = {
           username: string
         }
         Update: {
+          auth_email?: string | null
           avatar_url?: string | null
           created_at?: string
           department?: string | null
+          email?: string | null
           full_name?: string | null
           id?: string
           is_active?: boolean | null
+          must_change_password?: boolean | null
           phone?: string | null
           property_id?: string | null
           role?: string | null
@@ -1884,6 +1931,7 @@ export type Database = {
           phone: string | null
           service_charge_rate: number | null
           star_rating: number | null
+          status: string | null
           tax_rate: number | null
           tenant_id: string
           updated_at: string
@@ -1905,6 +1953,7 @@ export type Database = {
           phone?: string | null
           service_charge_rate?: number | null
           star_rating?: number | null
+          status?: string | null
           tax_rate?: number | null
           tenant_id: string
           updated_at?: string
@@ -1926,6 +1975,7 @@ export type Database = {
           phone?: string | null
           service_charge_rate?: number | null
           star_rating?: number | null
+          status?: string | null
           tax_rate?: number | null
           tenant_id?: string
           updated_at?: string
@@ -1937,6 +1987,35 @@ export type Database = {
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      property_access: {
+        Row: {
+          created_at: string
+          id: string
+          property_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          property_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          property_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "property_access_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
             referencedColumns: ["id"]
           },
         ]
@@ -2496,6 +2575,54 @@ export type Database = {
           },
         ]
       }
+      subscriptions: {
+        Row: {
+          created_at: string
+          ended_at: string | null
+          id: string
+          plan_id: string
+          started_at: string
+          status: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          ended_at?: string | null
+          id?: string
+          plan_id: string
+          started_at?: string
+          status?: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          ended_at?: string | null
+          id?: string
+          plan_id?: string
+          started_at?: string
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscriptions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscriptions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tax_configurations: {
         Row: {
           applies_to: Json | null
@@ -2612,6 +2739,8 @@ export type Database = {
       }
       tenants: {
         Row: {
+          contact_email: string | null
+          contact_phone: string | null
           created_at: string
           currency: string | null
           id: string
@@ -2620,10 +2749,13 @@ export type Database = {
           primary_color: string | null
           secondary_color: string | null
           slug: string
+          status: string | null
           timezone: string | null
           updated_at: string
         }
         Insert: {
+          contact_email?: string | null
+          contact_phone?: string | null
           created_at?: string
           currency?: string | null
           id?: string
@@ -2632,10 +2764,13 @@ export type Database = {
           primary_color?: string | null
           secondary_color?: string | null
           slug: string
+          status?: string | null
           timezone?: string | null
           updated_at?: string
         }
         Update: {
+          contact_email?: string | null
+          contact_phone?: string | null
           created_at?: string
           currency?: string | null
           id?: string
@@ -2644,6 +2779,7 @@ export type Database = {
           primary_color?: string | null
           secondary_color?: string | null
           slug?: string
+          status?: string | null
           timezone?: string | null
           updated_at?: string
         }
