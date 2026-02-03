@@ -2,40 +2,17 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/hooks/useTenant";
 import { toast } from "sonner";
-import type { Tables, Enums } from "@/integrations/supabase/types";
+import type { 
+  Folio, 
+  FolioItem, 
+  Payment, 
+  FolioItemType, 
+  PaymentMethod, 
+  FolioStats 
+} from "@/types/folios";
 
-export type FolioItemType = Enums<"folio_item_type">;
-export type PaymentMethod = Enums<"payment_method">;
-
-export type FolioItem = Tables<"folio_items">;
-export type Payment = Tables<"payments">;
-
-export type Folio = Tables<"folios"> & {
-  guest: {
-    id: string;
-    first_name: string;
-    last_name: string;
-    email: string | null;
-    phone: string | null;
-    corporate_account_id: string | null;
-  } | null;
-  reservation: {
-    id: string;
-    confirmation_number: string;
-    check_in_date: string;
-    check_out_date: string;
-    status: string;
-  } | null;
-  folio_items: FolioItem[];
-  payments: Payment[];
-};
-
-export type FolioStats = {
-  total_open: number;
-  total_closed: number;
-  total_balance: number;
-  today_revenue: number;
-};
+// Re-export types for use in components
+export type { Folio, FolioItem, Payment, FolioItemType, PaymentMethod, FolioStats };
 
 export function useFolios(status?: "open" | "closed") {
   const { currentProperty } = useTenant();
@@ -66,7 +43,7 @@ export function useFolios(status?: "open" | "closed") {
 
       if (error) throw error;
 
-      return (data || []).map((folio) => ({
+      return (data || []).map((folio: any) => ({
         ...folio,
         guest: folio.guest as Folio["guest"],
         reservation: folio.reservation as Folio["reservation"],
@@ -109,7 +86,7 @@ export function useFolioById(folioId: string | null) {
         reservation: data.reservation as Folio["reservation"],
         folio_items: (data.folio_items || []) as FolioItem[],
         payments: (data.payments || []) as Payment[],
-      };
+      } as Folio;
     },
     enabled: !!folioId && !!currentPropertyId,
   });
@@ -146,7 +123,7 @@ export function useFolioByReservationId(reservationId: string | null) {
         reservation: data.reservation as Folio["reservation"],
         folio_items: (data.folio_items || []) as FolioItem[],
         payments: (data.payments || []) as Payment[],
-      };
+      } as Folio;
     },
     enabled: !!reservationId && !!currentPropertyId,
   });
@@ -187,11 +164,11 @@ export function useFolioStats() {
       ) || [];
 
       const stats: FolioStats = {
-        total_open: folios?.filter((f) => f.status === "open").length || 0,
-        total_closed: folios?.filter((f) => f.status === "closed").length || 0,
-        total_balance: folios?.filter((f) => f.status === "open")
-          .reduce((sum, f) => sum + Number(f.balance || 0), 0) || 0,
-        today_revenue: todayPayments.reduce((sum, p) => sum + Number(p.amount || 0), 0),
+        total_open: folios?.filter((f: any) => f.status === "open").length || 0,
+        total_closed: folios?.filter((f: any) => f.status === "closed").length || 0,
+        total_balance: folios?.filter((f: any) => f.status === "open")
+          .reduce((sum: number, f: any) => sum + Number(f.balance || 0), 0) || 0,
+        today_revenue: todayPayments.reduce((sum: number, p: any) => sum + Number(p.amount || 0), 0),
       };
 
       return stats;
@@ -753,8 +730,8 @@ export function useSplitFolio() {
 
       // Calculate new folio totals
       const serviceChargeRate = currentProperty.service_charge_rate || 0;
-      const subtotal = items.reduce((sum, i) => sum + Number(i.total_price), 0);
-      const taxAmount = items.reduce((sum, i) => sum + Number(i.tax_amount), 0);
+      const subtotal = items.reduce((sum: number, i: any) => sum + Number(i.total_price), 0);
+      const taxAmount = items.reduce((sum: number, i: any) => sum + Number(i.tax_amount), 0);
       const serviceCharge = subtotal * (serviceChargeRate / 100);
       const totalAmount = subtotal + taxAmount + serviceCharge;
 
