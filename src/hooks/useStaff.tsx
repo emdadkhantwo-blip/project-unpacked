@@ -16,7 +16,7 @@ export interface StaffMember {
   created_at: string;
   roles: AppRole[];
   property_access: string[];
-  // HR profile data
+  // HR profile data (optional - table doesn't exist yet)
   staff_id?: string;
   department_id?: string;
   department_name?: string;
@@ -57,64 +57,23 @@ export function useStaff() {
 
       if (rolesError) throw rolesError;
 
-      // Fetch property access for all users
-      const { data: propertyAccess, error: accessError } = await supabase
-        .from("property_access")
-        .select("user_id, property_id")
-        .in("user_id", userIds);
-
-      if (accessError) throw accessError;
-
-      // Fetch HR staff profiles
-      const { data: hrProfiles, error: hrError } = await supabase
-        .from("hr_staff_profiles")
-        .select(`
-          profile_id,
-          staff_id,
-          department_id,
-          join_date,
-          employment_type,
-          salary_amount,
-          salary_currency,
-          notes,
-          department:hr_departments(name)
-        `)
-        .in("profile_id", userIds);
-
-      if (hrError) {
-        console.error("HR profiles fetch error:", hrError);
-        // Don't fail, HR data is optional
-      }
-
-      // Combine data
+      // Note: property_access and hr_staff_profiles tables don't exist yet
+      // Combine data without those tables
       const staffMembers: StaffMember[] = profiles.map((profile) => {
-        const hrProfile = hrProfiles?.find((hp) => hp.profile_id === profile.id);
-        
         return {
           id: profile.id,
           full_name: profile.full_name,
           username: profile.username,
-          email: profile.email,
+          email: null, // Not in profiles table
           phone: profile.phone,
           avatar_url: profile.avatar_url,
-          is_active: profile.is_active,
-          last_login_at: profile.last_login_at,
+          is_active: profile.is_active ?? true,
+          last_login_at: null, // Not in profiles table
           created_at: profile.created_at,
           roles: roles
             ?.filter((r) => r.user_id === profile.id)
             .map((r) => r.role as AppRole) || [],
-          property_access: propertyAccess
-            ?.filter((pa) => pa.user_id === profile.id)
-            .map((pa) => pa.property_id) || [],
-          // HR data
-          staff_id: hrProfile?.staff_id,
-          department_id: hrProfile?.department_id || undefined,
-          department_name: (hrProfile?.department as any)?.name || undefined,
-          join_date: hrProfile?.join_date,
-          employment_type: hrProfile?.employment_type,
-          salary_amount: hrProfile?.salary_amount || undefined,
-          salary_currency: hrProfile?.salary_currency || undefined,
-          notes: hrProfile?.notes || undefined,
+          property_access: profile.property_id ? [profile.property_id] : [],
         };
       });
 
@@ -159,10 +118,7 @@ export function useStaff() {
   });
 
   const updateHRProfileMutation = useMutation({
-    mutationFn: async ({
-      userId,
-      updates,
-    }: {
+    mutationFn: async (_data: {
       userId: string;
       updates: {
         staff_id?: string;
@@ -174,26 +130,14 @@ export function useStaff() {
         notes?: string;
       };
     }) => {
-      const { error } = await supabase
-        .from("hr_staff_profiles")
-        .update(updates)
-        .eq("profile_id", userId);
-
-      if (error) throw error;
+      // HR staff profiles table doesn't exist yet
+      toast({
+        title: "Info",
+        description: "HR module not yet configured",
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["staff"] });
-      toast({
-        title: "HR Details Updated",
-        description: "Staff HR details have been updated successfully.",
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
     },
   });
 
@@ -215,9 +159,13 @@ export function useStaff() {
 
       // Insert new roles
       if (roles.length > 0) {
+        const roleInserts = roles.map((role) => ({ 
+          user_id: userId, 
+          role: role as "owner" | "manager" | "front_desk" | "housekeeping" | "maintenance" | "kitchen" | "waiter" | "pos"
+        }));
         const { error: insertError } = await supabase
           .from("user_roles")
-          .insert(roles.map((role) => ({ user_id: userId, role })));
+          .insert(roleInserts);
 
         if (insertError) throw insertError;
       }
@@ -246,26 +194,14 @@ export function useStaff() {
       userId: string;
       propertyIds: string[];
     }) => {
-      // Delete existing property access
-      const { error: deleteError } = await supabase
-        .from("property_access")
-        .delete()
-        .eq("user_id", userId);
-
-      if (deleteError) throw deleteError;
-
-      // Insert new property access
+      // Update primary property in profile (property_access table doesn't exist)
       if (propertyIds.length > 0) {
-        const { error: insertError } = await supabase
-          .from("property_access")
-          .insert(
-            propertyIds.map((propertyId) => ({
-              user_id: userId,
-              property_id: propertyId,
-            }))
-          );
+        const { error } = await supabase
+          .from("profiles")
+          .update({ property_id: propertyIds[0] })
+          .eq("id", userId);
 
-        if (insertError) throw insertError;
+        if (error) throw error;
       }
     },
     onSuccess: () => {

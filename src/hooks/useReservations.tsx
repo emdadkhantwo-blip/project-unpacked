@@ -80,11 +80,16 @@ export function useReservations(dateRange?: { from: Date; to: Date }) {
         guest: res.guest as Reservation["guest"],
         reservation_rooms: (res.reservation_rooms || []).map((rr: any) => ({
           id: rr.id,
+          reservation_id: res.id,
           room_id: rr.room_id,
+          room_type_id: rr.room_type?.id || null,
           room_type: rr.room_type,
           room: rr.room,
+          rate_per_night: 0,
+          adults: 1,
+          children: 0,
         })),
-      }));
+      })) as Reservation[];
     },
     enabled: !!currentPropertyId,
   });
@@ -421,7 +426,7 @@ export function useCheckOut() {
               room_id: roomId,
               task_type: 'cleaning',
               priority: 2, // Medium priority for checkout cleaning
-              status: 'pending',
+              status: 'pending' as const,
               assigned_to: assignedTo,
               notes: assignedTo ? 'Post-checkout cleaning (auto-assigned)' : 'Post-checkout cleaning',
             };

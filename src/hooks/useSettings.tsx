@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useTenant } from './useTenant';
 import { toast } from 'sonner';
@@ -70,21 +70,21 @@ const DEFAULT_SETTINGS: TenantSettings = {
 
 export function useSettings() {
   const { tenant, refreshTenant } = useTenant();
-  const queryClient = useQueryClient();
 
   // Get settings with defaults merged
   const settings: TenantSettings = {
     branding: {
       ...DEFAULT_SETTINGS.branding,
-      ...(tenant?.settings as TenantSettings)?.branding,
+      primary_color: tenant?.primary_color || DEFAULT_SETTINGS.branding?.primary_color,
+      secondary_color: tenant?.secondary_color || DEFAULT_SETTINGS.branding?.secondary_color,
     },
     notifications: {
       ...DEFAULT_SETTINGS.notifications,
-      ...(tenant?.settings as TenantSettings)?.notifications,
     },
     defaults: {
       ...DEFAULT_SETTINGS.defaults,
-      ...(tenant?.settings as TenantSettings)?.defaults,
+      default_currency: tenant?.currency || DEFAULT_SETTINGS.defaults?.default_currency,
+      default_timezone: tenant?.timezone || DEFAULT_SETTINGS.defaults?.default_timezone,
     },
   };
 
@@ -92,12 +92,12 @@ export function useSettings() {
   const branding: TenantBranding = {
     name: tenant?.name || '',
     logo_url: tenant?.logo_url || null,
-    contact_email: tenant?.contact_email || null,
-    contact_phone: tenant?.contact_phone || null,
-    address: null, // From tenant table if available
+    contact_email: null, // Not in current schema
+    contact_phone: null, // Not in current schema
+    address: null,
   };
 
-  // Update tenant branding (name, logo, contact info)
+  // Update tenant branding (name, logo)
   const updateBranding = useMutation({
     mutationFn: async (updates: Partial<TenantBranding>) => {
       if (!tenant?.id) throw new Error('No tenant found');
@@ -109,8 +109,6 @@ export function useSettings() {
         .update({
           name: updates.name,
           logo_url: updates.logo_url,
-          contact_email: updates.contact_email,
-          contact_phone: updates.contact_phone,
         })
         .eq('id', tenant.id)
         .select()
@@ -121,7 +119,6 @@ export function useSettings() {
         throw error;
       }
       
-      // If no data returned, the RLS policy blocked the update
       if (!data) {
         throw new Error('Update was blocked by permissions. Please ensure you have owner access.');
       }
@@ -139,22 +136,36 @@ export function useSettings() {
     },
   });
 
-  // Update tenant settings (stored in settings JSONB)
+  // Update tenant settings (colors, timezone, currency)
   const updateSettings = useMutation({
     mutationFn: async (updates: Partial<TenantSettings>) => {
       if (!tenant?.id) throw new Error('No tenant found');
 
-      const currentSettings = (tenant.settings as TenantSettings) || {};
-      const newSettings = {
-        ...currentSettings,
-        ...updates,
-      };
+      console.log('Updating settings for tenant:', tenant.id, 'with:', updates);
 
-      console.log('Updating settings for tenant:', tenant.id, 'with:', newSettings);
+      // Map settings to actual tenant columns
+      const updateData: Record<string, unknown> = {};
+      if (updates.branding?.primary_color) {
+        updateData.primary_color = updates.branding.primary_color;
+      }
+      if (updates.branding?.secondary_color) {
+        updateData.secondary_color = updates.branding.secondary_color;
+      }
+      if (updates.defaults?.default_currency) {
+        updateData.currency = updates.defaults.default_currency;
+      }
+      if (updates.defaults?.default_timezone) {
+        updateData.timezone = updates.defaults.default_timezone;
+      }
+
+      if (Object.keys(updateData).length === 0) {
+        console.log('No actual updates to apply');
+        return tenant;
+      }
 
       const { data, error } = await supabase
         .from('tenants')
-        .update({ settings: newSettings as unknown as Record<string, never> })
+        .update(updateData)
         .eq('id', tenant.id)
         .select()
         .single();
@@ -164,7 +175,6 @@ export function useSettings() {
         throw error;
       }
 
-      // If no data returned, the RLS policy blocked the update
       if (!data) {
         throw new Error('Update was blocked by permissions. Please ensure you have owner access.');
       }
@@ -189,10 +199,10 @@ export function useSettings() {
     });
   };
 
-  const updateNotificationSettings = (updates: Partial<TenantSettings['notifications']>) => {
-    return updateSettings.mutateAsync({
-      notifications: { ...settings.notifications, ...updates },
-    });
+  const updateNotificationSettings = (_updates: Partial<TenantSettings['notifications']>) => {
+    // Notification settings not stored in DB yet
+    toast.info('Notification settings will be available soon');
+    return Promise.resolve();
   };
 
   const updateDefaultSettings = (updates: Partial<TenantSettings['defaults']>) => {

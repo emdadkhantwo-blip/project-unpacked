@@ -2,9 +2,6 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "./useTenant";
 import { useToast } from "@/hooks/use-toast";
-import type { Database } from "@/integrations/supabase/types";
-
-type PropertyStatus = Database["public"]["Enums"]["property_status"];
 
 export interface PropertyInput {
   name: string;
@@ -18,7 +15,6 @@ export interface PropertyInput {
   currency?: string;
   tax_rate?: number;
   service_charge_rate?: number;
-  status?: PropertyStatus;
 }
 
 export function useCreateProperty() {
@@ -41,11 +37,8 @@ export function useCreateProperty() {
           country: input.country || null,
           phone: input.phone || null,
           email: input.email || null,
-          timezone: input.timezone || "UTC",
-          currency: input.currency || "BDT",
           tax_rate: input.tax_rate || 0,
           service_charge_rate: input.service_charge_rate || 0,
-          status: input.status || "active",
         })
         .select()
         .single();
@@ -160,9 +153,10 @@ export function usePropertyStats() {
   const { properties } = useTenant();
 
   const totalProperties = properties.length;
-  const activeProperties = properties.filter((p) => p.status === "active").length;
-  const inactiveProperties = properties.filter((p) => p.status === "inactive").length;
-  const maintenanceProperties = properties.filter((p) => p.status === "maintenance").length;
+  // Properties table doesn't have status column yet
+  const activeProperties = totalProperties;
+  const inactiveProperties = 0;
+  const maintenanceProperties = 0;
 
   return {
     totalProperties,
