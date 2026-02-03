@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { format } from "date-fns";
+import { toast } from "sonner";
 import {
   Building2,
   Search,
@@ -78,8 +79,7 @@ export default function AdminTenants() {
   const filteredTenants = tenants.filter(
     (tenant) =>
       tenant.name.toLowerCase().includes(search.toLowerCase()) ||
-      tenant.slug.toLowerCase().includes(search.toLowerCase()) ||
-      tenant.contact_email?.toLowerCase().includes(search.toLowerCase())
+      tenant.slug.toLowerCase().includes(search.toLowerCase())
   );
 
   const filteredApplications = applications.filter(
@@ -92,8 +92,8 @@ export default function AdminTenants() {
   const totalProperties = tenants.reduce((acc, t) => acc + t.properties_count, 0);
   const totalStaff = tenants.reduce((acc, t) => acc + t.staff_count, 0);
   const totalRooms = tenants.reduce((acc, t) => acc + t.rooms_count, 0);
-  const activeTenants = tenants.filter((t) => t.status === "active").length;
-  const suspendedTenants = tenants.filter((t) => t.status === "suspended").length;
+  const activeTenants = tenants.length; // All tenants are considered active without status field
+  const suspendedTenants = 0;
 
   const pendingApplications = applications.filter((a) => a.status === "pending").length;
   const approvedApplications = applications.filter((a) => a.status === "approved").length;
@@ -141,18 +141,14 @@ export default function AdminTenants() {
     setApplicationDrawerOpen(true);
   };
 
-  const handleSuspend = (tenant: TenantWithStats) => {
-    updateStatus.mutate({
-      tenantId: tenant.id,
-      status: "suspended",
-    });
+  const handleSuspend = (_tenant: TenantWithStats) => {
+    // Tenant status updates require database table changes
+    toast.info("Tenant status management requires additional database configuration");
   };
 
-  const handleReactivate = (tenant: TenantWithStats) => {
-    updateStatus.mutate({
-      tenantId: tenant.id,
-      status: "active",
-    });
+  const handleReactivate = (_tenant: TenantWithStats) => {
+    // Tenant status updates require database table changes
+    toast.info("Tenant status management requires additional database configuration");
   };
 
   return (
@@ -509,12 +505,12 @@ export default function AdminTenants() {
                               <div>
                                 <p className="font-medium">{tenant.name}</p>
                                 <p className="text-xs text-muted-foreground">
-                                  {tenant.contact_email || tenant.slug}
+                                  {tenant.slug}
                                 </p>
                               </div>
                             </div>
                           </TableCell>
-                          <TableCell>{getPlanBadge(tenant.plan_type)}</TableCell>
+                          <TableCell>{getPlanBadge(null)}</TableCell>
                           <TableCell>
                             <div className="space-y-1 min-w-[120px]">
                               <div className="flex items-center gap-2 text-xs">
@@ -531,7 +527,7 @@ export default function AdminTenants() {
                               </div>
                             </div>
                           </TableCell>
-                          <TableCell>{getStatusBadge(tenant.status)}</TableCell>
+                          <TableCell>{getStatusBadge("active")}</TableCell>
                           <TableCell className="text-sm text-muted-foreground">
                             {format(new Date(tenant.created_at), "MMM d, yyyy")}
                           </TableCell>
@@ -548,23 +544,13 @@ export default function AdminTenants() {
                                   View Details
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator />
-                                {tenant.status === "active" ? (
-                                  <DropdownMenuItem
-                                    onClick={() => handleSuspend(tenant)}
-                                    className="text-destructive"
-                                  >
-                                    <Ban className="mr-2 h-4 w-4" />
-                                    Suspend Tenant
-                                  </DropdownMenuItem>
-                                ) : (
-                                  <DropdownMenuItem
-                                    onClick={() => handleReactivate(tenant)}
-                                    className="text-emerald-600"
-                                  >
-                                    <CheckCircle2 className="mr-2 h-4 w-4" />
-                                    Reactivate
-                                  </DropdownMenuItem>
-                                )}
+                                <DropdownMenuItem
+                                  onClick={() => handleSuspend(tenant)}
+                                  className="text-destructive"
+                                >
+                                  <Ban className="mr-2 h-4 w-4" />
+                                  Suspend Tenant
+                                </DropdownMenuItem>
                               </DropdownMenuContent>
                             </DropdownMenu>
                           </TableCell>

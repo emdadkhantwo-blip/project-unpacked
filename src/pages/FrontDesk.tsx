@@ -60,14 +60,12 @@ export default function FrontDesk() {
     ...fdr,
     status: fdr.status as Reservation["status"],
     reservation_rooms: fdr.reservation_rooms.map(rr => ({
-      ...rr,
-      reservation_id: fdr.id,
-      room_type_id: rr.room_type?.id || "",
-      rate_per_night: 0,
-      adults: 1,
-      children: 0,
+      id: rr.id,
+      room_id: rr.room_id,
+      room_type: rr.room_type || null,
+      room: rr.room || null,
     })),
-  });
+  } as Reservation);
 
   const handleViewDetails = (reservation: FrontDeskReservation) => {
     setSelectedReservation(toReservation(reservation));
@@ -224,7 +222,7 @@ export default function FrontDesk() {
 
       {/* Room Assignment Dialog for Check-In */}
       <RoomAssignmentDialog
-        reservation={pendingCheckIn}
+        reservation={pendingCheckIn ? toReservation(pendingCheckIn) as any : null}
         open={roomAssignmentOpen}
         onOpenChange={(open) => {
           setRoomAssignmentOpen(open);

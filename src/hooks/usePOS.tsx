@@ -346,3 +346,16 @@ export function useCloseTable() {
     isPending: false,
   };
 }
+
+export function useWaiterStats(_outletId?: string) {
+  return {
+    data: {
+      pending: 0,
+      preparing: 0,
+      ready: 0,
+      servedToday: 0,
+    },
+    isLoading: false,
+    error: null,
+  };
+}

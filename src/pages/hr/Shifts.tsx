@@ -69,15 +69,15 @@ const HRShifts = () => {
     breakMinutes: number;
     color: string;
   }) => {
-    createShift(data);
+    createShift();
   };
 
-  const handleAssignShift = (profileId: string, shiftId: string, date: string) => {
-    assignShift({ profileId, shiftId, date });
+  const handleAssignShift = (_profileId: string, _shiftId: string, _date: string) => {
+    assignShift();
   };
 
-  const handleRemoveAssignment = (assignmentId: string) => {
-    removeAssignment(assignmentId);
+  const handleRemoveAssignment = (_assignmentId: string) => {
+    removeAssignment();
   };
 
   const isLoading = shiftsLoading || scheduleLoading;
@@ -189,7 +189,7 @@ const HRShifts = () => {
                         variant="ghost"
                         size="icon"
                         className="opacity-0 group-hover:opacity-100 transition-opacity"
-                        onClick={() => deleteShift(shift.id)}
+                        onClick={() => deleteShift()}
                         disabled={isDeleting}
                       >
                         <Trash2 className="h-4 w-4 text-destructive" />

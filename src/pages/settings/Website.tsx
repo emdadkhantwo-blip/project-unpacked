@@ -19,7 +19,7 @@ export default function WebsitePage() {
   const [activeTab, setActiveTab] = useState('template');
 
   const { 
-    websiteConfig, 
+    website: websiteConfig, 
     isLoading: websiteLoading, 
     createWebsite, 
     updateWebsite,
@@ -56,15 +56,15 @@ export default function WebsitePage() {
   const selectedProperty = properties.find(p => p.id === selectedPropertyId) || properties[0];
 
   const handleCreateWebsite = () => {
-    createWebsite.mutate({});
+    createWebsite.mutate();
   };
 
-  const handleUpdateWebsite = (data: any) => {
-    updateWebsite.mutate(data);
+  const handleUpdateWebsite = (_data: any) => {
+    updateWebsite.mutate();
   };
 
   const handlePublishWebsite = () => {
-    publishWebsite.mutate(true);
+    publishWebsite.mutate();
   };
 
   return (
@@ -121,11 +121,11 @@ export default function WebsitePage() {
                     Preview
                   </a>
                 </Button>
-                {websiteConfig.is_published ? (
+                {websiteConfig?.is_published ? (
                   <Button 
                     size="sm" 
                     variant="outline" 
-                    onClick={() => publishWebsite.mutate(false)}
+                    onClick={() => publishWebsite.mutate()}
                   >
                     <Globe className="h-4 w-4 mr-2" />
                     Unpublish

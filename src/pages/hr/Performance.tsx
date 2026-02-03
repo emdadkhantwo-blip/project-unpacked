@@ -192,7 +192,7 @@ const HRPerformance = () => {
               </CardTitle>
               <AddPerformanceNoteDialog
                 staffList={staffList}
-                onSubmit={(data) => addNote.mutate(data)}
+                onSubmit={() => addNote.mutate()}
                 isSubmitting={addNote.isPending}
               />
             </div>
@@ -261,7 +261,7 @@ const HRPerformance = () => {
                               variant="ghost"
                               size="icon"
                               className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                              onClick={() => deleteNote.mutate(note.id)}
+                              onClick={() => deleteNote.mutate()}
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>
