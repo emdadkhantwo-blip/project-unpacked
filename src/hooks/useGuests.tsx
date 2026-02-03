@@ -2,9 +2,9 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/hooks/useTenant";
 import { toast } from "sonner";
-import type { Tables } from "@/integrations/supabase/types";
+import type { Guest as GuestType } from "@/types/hotel";
 
-export type Guest = Tables<"guests"> & {
+export type Guest = GuestType & {
   has_corporate_accounts?: boolean;
 };
 

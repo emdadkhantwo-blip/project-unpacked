@@ -2,11 +2,11 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/hooks/useTenant";
 import { toast } from "sonner";
-import type { Tables } from "@/integrations/supabase/types";
+import type { Reservation as ReservationType, ReservationStatus as ReservationStatusType } from "@/types/hotel";
 
-export type ReservationStatus = "confirmed" | "checked_in" | "checked_out" | "cancelled" | "no_show";
+export type ReservationStatus = ReservationStatusType;
 
-export type Reservation = Tables<"reservations"> & {
+export type Reservation = Omit<ReservationType, 'guest'> & {
   guest: {
     id: string;
     first_name: string;
