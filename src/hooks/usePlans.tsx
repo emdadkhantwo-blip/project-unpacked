@@ -1,3 +1,6 @@
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+
 export interface Plan {
   id: string;
   name: string;
@@ -10,14 +13,19 @@ export interface Plan {
   created_at: string;
 }
 
-// Note: plans table doesn't exist yet - returning mock data
-
 export function usePlans() {
-  return {
-    data: [] as Plan[],
-    isLoading: false,
-    error: null,
-  };
+  return useQuery({
+    queryKey: ["plans"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("plans")
+        .select("*")
+        .order("price_monthly", { ascending: true });
+
+      if (error) throw error;
+      return data as Plan[];
+    },
+  });
 }
 
 // Helper to get plan display info

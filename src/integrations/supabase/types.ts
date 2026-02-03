@@ -1323,6 +1323,42 @@ export type Database = {
           },
         ]
       }
+      plans: {
+        Row: {
+          created_at: string
+          features: Json
+          id: string
+          max_properties: number
+          max_rooms: number
+          max_staff: number
+          name: string
+          plan_type: string
+          price_monthly: number
+        }
+        Insert: {
+          created_at?: string
+          features?: Json
+          id?: string
+          max_properties?: number
+          max_rooms?: number
+          max_staff?: number
+          name: string
+          plan_type: string
+          price_monthly?: number
+        }
+        Update: {
+          created_at?: string
+          features?: Json
+          id?: string
+          max_properties?: number
+          max_rooms?: number
+          max_staff?: number
+          name?: string
+          plan_type?: string
+          price_monthly?: number
+        }
+        Relationships: []
+      }
       pos_menu_categories: {
         Row: {
           created_at: string
