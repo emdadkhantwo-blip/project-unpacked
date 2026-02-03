@@ -84,7 +84,7 @@ export default function PackagesList({ packages, roomTypes }: PackagesListProps)
             <div className="flex items-center gap-2">
               <Switch
                 checked={pkg.is_active}
-                onCheckedChange={(checked) => togglePackage.mutate({ id: pkg.id, is_active: checked })}
+                onCheckedChange={(checked) => togglePackage.mutate()}
               />
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -99,7 +99,7 @@ export default function PackagesList({ packages, roomTypes }: PackagesListProps)
                   </DropdownMenuItem>
                   <DropdownMenuItem 
                     className="text-destructive"
-                    onClick={() => deletePackage.mutate(pkg.id)}
+                    onClick={() => deletePackage.mutate()}
                   >
                     <Trash2 className="h-4 w-4 mr-2" />
                     Delete

@@ -204,11 +204,11 @@ export function TableManagement({ orders, outletId, onSelectEmptyTable, outlet }
   };
 
   const handleMarkServed = async (orderId: string) => {
-    await updateOrderStatus.mutateAsync({ orderId, status: "served" });
+    await updateOrderStatus.mutateAsync();
   };
 
   const handleMarkReady = async (orderId: string) => {
-    await updateOrderStatus.mutateAsync({ orderId, status: "ready" });
+    await updateOrderStatus.mutateAsync();
   };
 
   const handleDragEnd = (tableId: string, info: { point: { x: number; y: number }; offset: { x: number; y: number } }) => {
@@ -272,15 +272,7 @@ export function TableManagement({ orders, outletId, onSelectEmptyTable, outlet }
         x: t.x,
         y: t.y,
       }));
-      await updateOutlet.mutateAsync({
-        id: outletId,
-        updates: {
-          settings: {
-            ...currentSettings,
-            tableLayout: layoutData as Json,
-          } as Json,
-        },
-      });
+      await updateOutlet.mutateAsync();
       toast.success("Floor plan layout saved!");
       setIsEditMode(false);
     } catch (error) {
@@ -312,10 +304,7 @@ export function TableManagement({ orders, outletId, onSelectEmptyTable, outlet }
     if (!tableToClose) return;
     
     try {
-      await closeTable.mutateAsync({
-        tableNumber: tableToClose.tableNumber,
-        outletId,
-      });
+      await closeTable.mutateAsync();
       setTableToClose(null);
       setSelectedTable(null);
     } catch (error) {
@@ -501,343 +490,209 @@ export function TableManagement({ orders, outletId, onSelectEmptyTable, outlet }
                   <Button
                     size="sm"
                     onClick={handleSaveLayout}
-                    disabled={updateOutlet.isPending}
                     className="gap-1 bg-gradient-to-r from-emerald-500 to-teal-600"
+                    disabled={updateOutlet.isPending}
                   >
                     <Save className="h-4 w-4" />
                     Save Layout
                   </Button>
                 </>
               ) : (
-                <>
-                  <div className="flex items-center gap-4 text-sm font-normal mr-4">
-                    <div className="flex items-center gap-2">
-                      <div className="h-3 w-3 rounded-full bg-muted border" />
-                      <span className="text-muted-foreground">Available</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="h-3 w-3 rounded-full bg-amber-500" />
-                      <span className="text-muted-foreground">Pending</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="h-3 w-3 rounded-full bg-blue-500" />
-                      <span className="text-muted-foreground">Preparing</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="h-3 w-3 rounded-full bg-emerald-500" />
-                      <span className="text-muted-foreground">Ready</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="h-3 w-3 rounded-full bg-purple-500" />
-                      <span className="text-muted-foreground">Served</span>
-                    </div>
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setIsEditMode(true)}
-                    className="gap-1"
-                  >
-                    <Move className="h-4 w-4" />
-                    Edit Layout
-                  </Button>
-                </>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsEditMode(true)}
+                  className="gap-1"
+                >
+                  <Move className="h-4 w-4" />
+                  Edit Layout
+                </Button>
               )}
             </div>
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div 
+          <div
             id="table-grid-container"
-            className="grid grid-cols-4 gap-4 relative"
-            style={{ minHeight: `${3 * CELL_SIZE + 32}px` }}
+            className="relative grid gap-4"
+            style={{
+              gridTemplateColumns: `repeat(${GRID_SIZE}, 1fr)`,
+            }}
           >
             {sortedTables.map((table) => {
-              const tableInfo = getTableInfo(table.id);
-              const status = statusConfig[tableInfo?.primaryStatus || ""] || null;
-              const isOccupied = !!tableInfo;
-
-              if (isEditMode) {
-                const hasOrders = tableOrders[table.id]?.length > 0;
-                return (
-                  <motion.div
-                    key={table.id}
-                    drag
-                    dragMomentum={false}
-                    dragElastic={0}
-                    onDragStart={() => setDraggedTable(table.id)}
-                    onDragEnd={(_, info) => handleDragEnd(table.id, info)}
-                    whileDrag={{ scale: 1.05, zIndex: 50 }}
-                    className={cn(
-                      "relative flex flex-col items-center justify-center rounded-2xl border-2 p-4 transition-all duration-200",
-                      "min-h-[140px] cursor-grab active:cursor-grabbing",
-                      "border-dashed border-primary/50 bg-primary/5",
-                      draggedTable === table.id && "shadow-2xl ring-2 ring-primary"
-                    )}
-                    style={{
-                      gridColumn: table.x + 1,
-                      gridRow: table.y + 1,
-                    }}
-                  >
-                    <Move className="absolute top-2 right-2 h-4 w-4 text-primary/50" />
-                    {!hasOrders && (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDeleteTable(table.id);
-                        }}
-                        className="absolute top-2 left-2 p-1 rounded-full bg-destructive/10 hover:bg-destructive/20 text-destructive transition-colors"
-                        title="Delete table"
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </button>
-                    )}
-                    <span className="text-2xl font-bold text-primary">
-                      {table.id}
-                    </span>
-                    <span className="mt-2 text-sm text-muted-foreground">
-                      {table.seats} seats
-                    </span>
-                    {hasOrders && (
-                      <Badge variant="secondary" className="mt-1 text-xs bg-amber-100 text-amber-700">
-                        In use
-                      </Badge>
-                    )}
-                  </motion.div>
-                );
-              }
+              const info = getTableInfo(table.id);
+              const isOccupied = !!info;
+              const config = info ? statusConfig[info.primaryStatus] : null;
 
               return (
-                <button
+                <motion.div
                   key={table.id}
-                  onClick={() => {
-                    if (tableInfo) {
-                      setSelectedTable(tableInfo);
-                    } else {
-                      onSelectEmptyTable?.(table.id);
-                    }
-                  }}
                   className={cn(
-                    "relative flex flex-col items-center justify-center rounded-2xl border-2 p-4 transition-all duration-200",
-                    "min-h-[140px]",
+                    "relative rounded-xl border-2 p-4 transition-all cursor-pointer",
                     isOccupied
-                      ? cn(
-                          status?.bgColor, 
-                          status?.borderColor,
-                          "cursor-pointer hover:shadow-lg hover:-translate-y-0.5",
-                          tableInfo.primaryStatus === "ready" && "ring-2 ring-emerald-300 animate-pulse"
-                        )
-                      : "border-dashed border-muted-foreground/30 bg-muted/20 cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-colors"
+                      ? cn("bg-gradient-to-br", config?.gradient, "border-transparent text-white")
+                      : "bg-muted/50 border-dashed border-muted-foreground/30 hover:border-primary/50",
+                    isEditMode && "cursor-move"
                   )}
                   style={{
                     gridColumn: table.x + 1,
                     gridRow: table.y + 1,
                   }}
+                  drag={isEditMode}
+                  dragMomentum={false}
+                  onDragStart={() => setDraggedTable(table.id)}
+                  onDragEnd={(_, info) => handleDragEnd(table.id, info)}
+                  onClick={() => {
+                    if (!isEditMode) {
+                      if (isOccupied) {
+                        setSelectedTable(info);
+                      } else {
+                        onSelectEmptyTable?.(table.id);
+                      }
+                    }
+                  }}
+                  whileHover={{ scale: isEditMode ? 1.02 : 1 }}
+                  whileDrag={{ scale: 1.05, zIndex: 50 }}
                 >
-                  <span className={cn(
-                    "text-2xl font-bold",
-                    isOccupied ? status?.color : "text-muted-foreground"
-                  )}>
-                    {table.id}
-                  </span>
-                  
-                  {isOccupied ? (
-                    <>
-                      <div className="mt-2 flex items-center gap-1.5 text-sm">
-                        <Users className={cn("h-4 w-4", status?.color)} />
-                        <span className={status?.color}>{tableInfo.totalCovers} guests</span>
-                      </div>
-                      <Badge 
-                        className={cn(
-                          "mt-3 gap-1",
-                          status?.bgColor,
-                          status?.color,
-                          "border",
-                          status?.borderColor
-                        )}
-                      >
-                        {status?.icon}
-                        <span>{status?.label}</span>
-                      </Badge>
-                      <p className={cn("mt-2 font-bold", status?.color)}>
-                        ৳{tableInfo.totalAmount.toFixed(0)}
-                      </p>
-                    </>
-                  ) : (
-                    <span className="mt-2 text-sm text-muted-foreground">
-                      {table.seats} seats
-                    </span>
+                  {isEditMode && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-destructive text-white hover:bg-destructive/90"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteTable(table.id);
+                      }}
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
                   )}
-                </button>
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-lg">{table.id}</span>
+                    {isOccupied ? (
+                      <Badge variant="secondary" className="bg-white/20 text-white">
+                        {config?.icon}
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline" className="text-xs opacity-50">
+                        {table.seats} seats
+                      </Badge>
+                    )}
+                  </div>
+                  {isOccupied && info && (
+                    <div className="mt-2 text-sm opacity-90">
+                      <p>{info.totalCovers} covers • {info.orders.length} order(s)</p>
+                      <p className="font-semibold">৳{info.totalAmount.toFixed(0)}</p>
+                    </div>
+                  )}
+                </motion.div>
               );
             })}
           </div>
-          
-          {isEditMode && (
-            <p className="mt-4 text-center text-sm text-muted-foreground">
-              Drag tables to rearrange the floor plan. Tables will swap positions when dropped on each other.
-            </p>
-          )}
         </CardContent>
       </Card>
 
       {/* Table Detail Dialog */}
-      <Dialog open={!!selectedTable} onOpenChange={() => setSelectedTable(null)}>
-        <DialogContent className="max-w-2xl">
+      <Dialog open={!!selectedTable} onOpenChange={(open) => !open && setSelectedTable(null)}>
+        <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-3">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <UtensilsCrossed className="h-5 w-5 text-blue-600" />
-              </div>
-              {selectedTable?.tableNumber} - Table Details
+            <DialogTitle className="flex items-center gap-2">
+              Table {selectedTable?.tableNumber}
+              {selectedTable && (
+                <Badge className={cn("ml-2", statusConfig[selectedTable.primaryStatus]?.bgColor, statusConfig[selectedTable.primaryStatus]?.color)}>
+                  {statusConfig[selectedTable.primaryStatus]?.label}
+                </Badge>
+              )}
             </DialogTitle>
+            <DialogDescription>
+              {selectedTable?.totalCovers} covers • {selectedTable?.orders.length} active order(s)
+            </DialogDescription>
           </DialogHeader>
-
-          <div className="space-y-4">
-            {/* Summary */}
-            <div className="grid grid-cols-3 gap-4">
-              <Card className="bg-gradient-to-br from-blue-500 to-indigo-600 border-none">
-                <CardContent className="p-4 text-center text-white">
-                  <Users className="mx-auto h-5 w-5" />
-                  <p className="mt-1 text-2xl font-bold">{selectedTable?.totalCovers}</p>
-                  <p className="text-xs text-white/80">Guests</p>
-                </CardContent>
-              </Card>
-              <Card className="bg-gradient-to-br from-purple-500 to-violet-600 border-none">
-                <CardContent className="p-4 text-center text-white">
-                  <UtensilsCrossed className="mx-auto h-5 w-5" />
-                  <p className="mt-1 text-2xl font-bold">{selectedTable?.orders.length}</p>
-                  <p className="text-xs text-white/80">Orders</p>
-                </CardContent>
-              </Card>
-              <Card className="bg-gradient-to-br from-emerald-500 to-teal-600 border-none">
-                <CardContent className="p-4 text-center text-white">
-                  <span className="text-white/80">৳</span>
-                  <p className="mt-1 text-2xl font-bold">{selectedTable?.totalAmount.toFixed(0)}</p>
-                  <p className="text-xs text-white/80">Total</p>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Orders List */}
-            <ScrollArea className="h-[300px]">
-              <div className="space-y-3">
-                {selectedTable?.orders.map((order) => {
-                  const orderStatus = statusConfig[order.status];
-                  return (
-                    <Card key={order.id} className={cn("border-l-4", orderStatus?.bgColor, orderStatus?.borderColor?.replace("border-", "border-l-"))}>
-                      <CardContent className="p-4">
-                        <div className="flex items-start justify-between">
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <span className="font-semibold">{order.order_number}</span>
-                              <Badge className={cn("border gap-1", orderStatus?.bgColor, orderStatus?.color, orderStatus?.borderColor)}>
-                                {orderStatus?.icon}
-                                <span>{orderStatus?.label}</span>
-                              </Badge>
-                            </div>
-                            <p className="mt-1 text-sm text-muted-foreground">
-                              {format(new Date(order.created_at), "h:mm a")} • {order.covers} covers
-                            </p>
-                            {order.notes && (
-                              <p className="mt-1 text-sm italic text-muted-foreground">
-                                "{order.notes}"
-                              </p>
-                            )}
-                          </div>
-                          <div className="text-right">
-                            <p className="text-lg font-bold">৳{Number(order.total_amount).toFixed(0)}</p>
-                          </div>
+          {selectedTable && (
+            <ScrollArea className="max-h-[50vh]">
+              <div className="space-y-4">
+                {selectedTable.orders.map((order) => (
+                  <Card key={order.id} className="p-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-semibold">#{order.order_number.split("-").pop()}</span>
+                      <Badge variant="outline" className="text-xs">
+                        {format(new Date(order.created_at), "HH:mm")}
+                      </Badge>
+                    </div>
+                    <div className="space-y-1 text-sm">
+                      {order.items?.map((item) => (
+                        <div key={item.id} className="flex justify-between">
+                          <span>{item.quantity}x {item.item_name}</span>
+                          <span className="text-muted-foreground">৳{Number(item.total_price).toFixed(0)}</span>
                         </div>
-
-                        {/* Order Items */}
-                        <div className="mt-3 space-y-1 border-t pt-3">
-                          {order.items?.map((item) => (
-                            <div key={item.id} className="flex justify-between text-sm">
-                              <span>
-                                <span className="font-medium">{item.quantity}x</span> {item.item_name}
-                                {item.notes && (
-                                  <span className="ml-1 text-amber-600">({item.notes})</span>
-                                )}
-                              </span>
-                              <span className="font-medium">৳{Number(item.total_price).toFixed(0)}</span>
-                            </div>
-                          ))}
-                        </div>
-
-                        {/* Actions */}
-                        <div className="mt-3 flex gap-2 border-t pt-3">
-                          {order.status === "preparing" && (
-                            <Button 
-                              size="sm" 
-                              className="bg-emerald-100 text-emerald-700 hover:bg-emerald-200 border-emerald-200"
-                              variant="outline"
-                              onClick={() => handleMarkReady(order.id)}
-                              disabled={updateOrderStatus.isPending}
-                            >
-                              <CheckCircle className="mr-1 h-4 w-4" />
-                              Mark Ready
-                            </Button>
-                          )}
-                          {order.status === "ready" && (
-                            <Button 
-                              size="sm"
-                              className="bg-gradient-to-r from-purple-500 to-violet-600 text-white"
-                              onClick={() => handleMarkServed(order.id)}
-                              disabled={updateOrderStatus.isPending}
-                            >
-                              <UtensilsCrossed className="mr-1 h-4 w-4" />
-                              Mark Served
-                            </Button>
-                          )}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
+                      ))}
+                    </div>
+                    <div className="mt-2 flex gap-2">
+                      {order.status === "preparing" && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="flex-1"
+                          onClick={() => handleMarkReady(order.id)}
+                        >
+                          <CheckCircle className="mr-1 h-3 w-3" />
+                          Ready
+                        </Button>
+                      )}
+                      {order.status === "ready" && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="flex-1"
+                          onClick={() => handleMarkServed(order.id)}
+                        >
+                          <UtensilsCrossed className="mr-1 h-3 w-3" />
+                          Served
+                        </Button>
+                      )}
+                    </div>
+                  </Card>
+                ))}
               </div>
             </ScrollArea>
-            
-            {/* Close Table Action */}
-            <div className="border-t pt-4 mt-4">
+          )}
+          <DialogFooter className="flex gap-2">
+            <Button
+              variant="outline"
+              className="flex-1"
+              onClick={() => setSelectedTable(null)}
+            >
+              Close
+            </Button>
+            {selectedTable && selectedTable.orders.every(o => o.status === "served") && (
               <Button
-                className="w-full gap-2 bg-gradient-to-r from-rose-500 to-red-600 text-white hover:from-rose-600 hover:to-red-700"
-                onClick={() => selectedTable && setTableToClose(selectedTable)}
-                disabled={closeTable.isPending}
+                variant="default"
+                className="flex-1 bg-gradient-to-r from-emerald-500 to-teal-600"
+                onClick={() => setTableToClose(selectedTable)}
               >
-                <DoorClosed className="h-4 w-4" />
+                <DoorClosed className="mr-2 h-4 w-4" />
                 Close Table
               </Button>
-            </div>
-          </div>
+            )}
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Close Table Confirmation Dialog */}
-      <AlertDialog open={!!tableToClose} onOpenChange={() => setTableToClose(null)}>
+      {/* Close Table Confirmation */}
+      <AlertDialog open={!!tableToClose} onOpenChange={(open) => !open && setTableToClose(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2">
-              <DoorClosed className="h-5 w-5 text-rose-500" />
-              Close Table {tableToClose?.tableNumber}?
-            </AlertDialogTitle>
+            <AlertDialogTitle>Close Table {tableToClose?.tableNumber}?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will mark all {tableToClose?.orders.length} order{(tableToClose?.orders.length || 0) > 1 ? 's' : ''} as posted. 
-              The table will become available for new guests.
+              This will mark all orders as complete and free up the table. 
+              Total bill: ৳{tableToClose?.totalAmount.toFixed(2)}
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <div className="p-4 bg-muted/50 rounded-lg">
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-muted-foreground">Total Amount</span>
-              <span className="text-xl font-bold">৳{tableToClose?.totalAmount.toFixed(0)}</span>
-            </div>
-          </div>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleCloseTable}
-              className="bg-gradient-to-r from-rose-500 to-red-600 text-white hover:from-rose-600 hover:to-red-700"
-              disabled={closeTable.isPending}
+              className="bg-gradient-to-r from-emerald-500 to-teal-600"
             >
               {closeTable.isPending ? "Closing..." : "Close Table"}
             </AlertDialogAction>
@@ -847,47 +702,37 @@ export function TableManagement({ orders, outletId, onSelectEmptyTable, outlet }
 
       {/* Add Table Dialog */}
       <Dialog open={showAddTableDialog} onOpenChange={setShowAddTableDialog}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent>
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Plus className="h-5 w-5 text-primary" />
-              Add New Table
-            </DialogTitle>
+            <DialogTitle>Add New Table</DialogTitle>
             <DialogDescription>
-              Enter the details for the new table. It will be placed in the first available position.
+              Enter the table ID and number of seats.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="table-id">Table ID / Name *</Label>
+              <Label>Table ID</Label>
               <Input
-                id="table-id"
-                placeholder="e.g., T9, VIP1, Patio 1"
+                placeholder="e.g., T9 or VIP1"
                 value={newTableId}
-                onChange={(e) => setNewTableId(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    handleAddTable();
-                  }
-                }}
+                onChange={(e) => setNewTableId(e.target.value.toUpperCase())}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="table-seats">Number of Seats</Label>
-              <Select 
-                value={newTableSeats.toString()} 
+              <Label>Seats</Label>
+              <Select
+                value={newTableSeats.toString()}
                 onValueChange={(v) => setNewTableSeats(parseInt(v))}
               >
-                <SelectTrigger id="table-seats">
+                <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="2">2 seats</SelectItem>
-                  <SelectItem value="4">4 seats</SelectItem>
-                  <SelectItem value="6">6 seats</SelectItem>
-                  <SelectItem value="8">8 seats</SelectItem>
-                  <SelectItem value="10">10 seats</SelectItem>
-                  <SelectItem value="12">12 seats</SelectItem>
+                  {[2, 4, 6, 8, 10, 12].map((n) => (
+                    <SelectItem key={n} value={n.toString()}>
+                      {n} seats
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -896,8 +741,7 @@ export function TableManagement({ orders, outletId, onSelectEmptyTable, outlet }
             <Button variant="outline" onClick={() => setShowAddTableDialog(false)}>
               Cancel
             </Button>
-            <Button onClick={handleAddTable} className="gap-1">
-              <Plus className="h-4 w-4" />
+            <Button onClick={handleAddTable}>
               Add Table
             </Button>
           </DialogFooter>

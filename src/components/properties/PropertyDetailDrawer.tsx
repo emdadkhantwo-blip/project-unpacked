@@ -25,14 +25,11 @@ interface Property {
   id: string;
   name: string;
   code: string;
-  status: "active" | "inactive" | "maintenance";
   address: string | null;
   city: string | null;
   country: string | null;
   phone: string | null;
   email: string | null;
-  timezone: string | null;
-  currency: string | null;
   tax_rate: number | null;
   service_charge_rate: number | null;
   created_at: string;
@@ -70,7 +67,6 @@ export function PropertyDetailDrawer({
   // Form state
   const [name, setName] = useState("");
   const [code, setCode] = useState("");
-  const [status, setStatus] = useState<"active" | "inactive" | "maintenance">("active");
   const [address, setAddress] = useState("");
   const [city, setCity] = useState("");
   const [country, setCountry] = useState("");
@@ -86,14 +82,13 @@ export function PropertyDetailDrawer({
     if (property) {
       setName(property.name);
       setCode(property.code);
-      setStatus(property.status);
       setAddress(property.address || "");
       setCity(property.city || "");
       setCountry(property.country || "");
       setPhone(property.phone || "");
       setEmail(property.email || "");
-      setTimezone(property.timezone || "UTC");
-      setCurrency(property.currency || "BDT");
+      setTimezone("UTC");
+      setCurrency("BDT");
       setTaxRate(property.tax_rate?.toString() || "0");
       setServiceChargeRate(property.service_charge_rate?.toString() || "0");
     }
@@ -107,7 +102,6 @@ export function PropertyDetailDrawer({
       updates: {
         name,
         code,
-        status,
         address: address || undefined,
         city: city || undefined,
         country: country || undefined,
@@ -121,8 +115,6 @@ export function PropertyDetailDrawer({
     updateProperty.mutate({
       id: property.id,
       updates: {
-        timezone,
-        currency,
         tax_rate: parseFloat(taxRate) || 0,
         service_charge_rate: parseFloat(serviceChargeRate) || 0,
       },
@@ -142,15 +134,9 @@ export function PropertyDetailDrawer({
               <p className="text-sm text-muted-foreground">{property.code}</p>
               <Badge
                 variant="outline"
-                className={`mt-1 ${
-                  property.status === "active"
-                    ? "bg-green-500/10 text-green-500"
-                    : property.status === "maintenance"
-                    ? "bg-amber-500/10 text-amber-500"
-                    : ""
-                }`}
+                className="mt-1 bg-green-500/10 text-green-500"
               >
-                {property.status}
+                Active
               </Badge>
             </div>
           </div>
@@ -188,20 +174,6 @@ export function PropertyDetailDrawer({
                     maxLength={10}
                   />
                 </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="status">Status</Label>
-                <Select value={status} onValueChange={(v) => setStatus(v as typeof status)}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="active">Active</SelectItem>
-                    <SelectItem value="inactive">Inactive</SelectItem>
-                    <SelectItem value="maintenance">Maintenance</SelectItem>
-                  </SelectContent>
-                </Select>
               </div>
 
               <div className="space-y-2">

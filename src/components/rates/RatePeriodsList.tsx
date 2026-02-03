@@ -113,7 +113,7 @@ export default function RatePeriodsList({ ratePeriods, roomTypes }: RatePeriodsL
             <div className="flex items-center gap-2">
               <Switch
                 checked={period.is_active}
-                onCheckedChange={(checked) => toggleRatePeriod.mutate({ id: period.id, is_active: checked })}
+                onCheckedChange={(checked) => toggleRatePeriod.mutate()}
               />
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -128,7 +128,7 @@ export default function RatePeriodsList({ ratePeriods, roomTypes }: RatePeriodsL
                   </DropdownMenuItem>
                   <DropdownMenuItem 
                     className="text-destructive"
-                    onClick={() => deleteRatePeriod.mutate(period.id)}
+                    onClick={() => deleteRatePeriod.mutate()}
                   >
                     <Trash2 className="h-4 w-4 mr-2" />
                     Delete

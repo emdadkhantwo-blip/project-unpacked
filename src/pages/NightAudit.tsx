@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Moon, Calendar } from 'lucide-react';
 import { useTenant } from '@/hooks/useTenant';
+import { toast } from 'sonner';
 
 export default function NightAudit() {
   const { tenant } = useTenant();
@@ -27,21 +28,23 @@ export default function NightAudit() {
     paymentsByMethod,
     revenueByCategory,
     isLoading,
-    isLoadingDetails,
+    isLoadingRoomDetails,
     startAudit,
     postRoomCharges,
     completeAudit,
-    refetchPreAudit,
-    refetchStats,
-    exportCSV,
-    getReportData,
+    isStartingAudit,
+    isPostingCharges,
+    isCompletingAudit,
   } = useNightAudit();
 
   const [activeTab, setActiveTab] = useState('journey');
 
   const handleExportPDF = () => {
-    const reportData = getReportData();
-    openNightAuditReportView(reportData);
+    toast.info("PDF export not available (night_audits table not configured)");
+  };
+
+  const handleExportCSV = (type?: string) => {
+    toast.info("CSV export not available (night_audits table not configured)");
   };
 
   const handleViewReport = () => {
@@ -69,7 +72,7 @@ export default function NightAudit() {
           </div>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             <NightAuditExportButtons
-              onExportCSV={exportCSV}
+              onExportCSV={handleExportCSV}
               onExportPDF={handleExportPDF}
               isLoading={isLoading}
             />
@@ -103,14 +106,14 @@ export default function NightAudit() {
                 roomDetails={roomDetails}
                 outstandingFoliosCount={outstandingFolios.length}
                 outstandingBalance={outstandingBalance}
-                onStartAudit={() => startAudit.mutate()}
-                onPostCharges={() => postRoomCharges.mutate()}
-                onCompleteAudit={(notes) => completeAudit.mutate(notes)}
+                onStartAudit={() => startAudit()}
+                onPostCharges={() => postRoomCharges()}
+                onCompleteAudit={(notes) => completeAudit()}
                 onViewReport={handleViewReport}
                 onExportPDF={handleExportPDF}
-                isStarting={startAudit.isPending}
-                isPostingCharges={postRoomCharges.isPending}
-                isCompleting={completeAudit.isPending}
+                isStarting={isStartingAudit}
+                isPostingCharges={isPostingCharges}
+                isCompleting={isCompletingAudit}
               />
             )}
           </TabsContent>
@@ -124,7 +127,7 @@ export default function NightAudit() {
               revenueByCategory={revenueByCategory}
               totalRevenue={auditStats?.totalRevenue || 0}
               totalPayments={auditStats?.totalPayments || 0}
-              isLoading={isLoadingDetails}
+              isLoading={isLoadingRoomDetails}
             />
           </TabsContent>
 
@@ -133,7 +136,7 @@ export default function NightAudit() {
             <NightAuditHistory 
               audits={auditHistory} 
               isLoading={isLoading}
-              onExportCSV={() => exportCSV('history')}
+              onExportCSV={() => handleExportCSV('history')}
             />
           </TabsContent>
         </Tabs>

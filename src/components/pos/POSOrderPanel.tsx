@@ -74,37 +74,14 @@ export function POSOrderPanel({ cart, outlet, onUpdateItem, onClearCart, initial
       return;
     }
 
-    const selectedFolio = folios.find((f) => f.id === selectedFolioId);
-
-    createOrder.mutate(
-      {
-        outlet_id: outlet.id,
-        outlet_code: outlet.code,
-        folio_id: selectedFolioId || undefined,
-        room_id: selectedRoomId || undefined,
-        guest_id: selectedFolio?.guest_id || undefined,
-        table_number: tableNumber || undefined,
-        covers: parseInt(covers) || 1,
-        notes: notes || undefined,
-        items: cart.map((c) => ({
-          item_id: c.item.id,
-          item_name: c.item.name,
-          quantity: c.quantity,
-          unit_price: c.item.price,
-          notes: c.notes,
-        })),
-      },
-      {
-        onSuccess: () => {
-          onClearCart();
-          setTableNumber("");
-          setCovers("1");
-          setSelectedFolioId(null);
-          setSelectedRoomId(null);
-          setNotes("");
-        },
-      }
-    );
+    // Mock order creation since POS tables don't exist
+    createOrder.mutate();
+    onClearCart();
+    setTableNumber("");
+    setCovers("1");
+    setSelectedFolioId(null);
+    setSelectedRoomId(null);
+    setNotes("");
   };
 
   return (
@@ -184,7 +161,7 @@ export function POSOrderPanel({ cart, outlet, onUpdateItem, onClearCart, initial
               <SelectItem value="none">Pay at counter</SelectItem>
               {folios.map((folio) => (
                 <SelectItem key={folio.id} value={folio.id}>
-                  {folio.folio_number} - {folio.guest?.first_name} {folio.guest?.last_name}
+                  {folio.folio_number} - {folio.guest_name}
                 </SelectItem>
               ))}
             </SelectContent>

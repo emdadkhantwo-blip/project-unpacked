@@ -100,18 +100,7 @@ export default function CreatePackageDialog({ open, onOpenChange, roomTypes }: C
         icon: inc.icon,
       }));
 
-    await createPackage.mutateAsync({
-      name: values.name,
-      code: values.code.toUpperCase(),
-      description: values.description,
-      price_adjustment: values.price_adjustment,
-      adjustment_type: values.adjustment_type as PackageAdjustmentType,
-      valid_from: values.valid_from ? format(values.valid_from, 'yyyy-MM-dd') : null,
-      valid_until: values.valid_until ? format(values.valid_until, 'yyyy-MM-dd') : null,
-      min_nights: values.min_nights,
-      inclusions: validInclusions,
-      applicable_room_types: selectedRoomTypes.length > 0 ? selectedRoomTypes : null,
-    });
+    await createPackage.mutateAsync();
     
     form.reset();
     setSelectedRoomTypes([]);

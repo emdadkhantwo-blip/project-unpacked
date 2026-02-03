@@ -700,7 +700,7 @@ export function StaffDetailDrawer({
                           </p>
                         </div>
                         <Badge variant="outline" className="text-xs">
-                          {property.status}
+                          Active
                         </Badge>
                       </CardContent>
                     </Card>

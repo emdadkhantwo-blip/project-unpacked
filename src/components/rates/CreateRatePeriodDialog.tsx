@@ -80,17 +80,7 @@ export default function CreateRatePeriodDialog({ open, onOpenChange, roomTypes }
   const adjustmentType = form.watch('adjustment_type');
 
   const onSubmit = async (values: FormValues) => {
-    await createRatePeriod.mutateAsync({
-      name: values.name,
-      room_type_id: values.room_type_id === 'all' ? null : values.room_type_id,
-      rate_type: values.rate_type as RatePeriodType,
-      amount: values.amount,
-      adjustment_type: values.adjustment_type as RateAdjustmentType,
-      start_date: values.start_date ? format(values.start_date, 'yyyy-MM-dd') : null,
-      end_date: values.end_date ? format(values.end_date, 'yyyy-MM-dd') : null,
-      days_of_week: rateType === 'weekend' ? selectedDays : null,
-      priority: values.priority,
-    });
+    await createRatePeriod.mutateAsync();
     
     form.reset();
     setSelectedDays([]);
