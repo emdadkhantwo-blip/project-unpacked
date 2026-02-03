@@ -55,16 +55,16 @@ export default function TaxesPage() {
 
   const selectedProperty = properties.find(p => p.id === selectedPropertyId) || properties[0];
 
-  const handleCreateTax = async (data: any) => {
-    await createTaxConfiguration.mutateAsync(data);
+  const handleCreateTax = async (_data: any) => {
+    await createTaxConfiguration.mutateAsync();
   };
 
-  const handleUpdateTax = (id: string, data: any) => {
-    updateTaxConfiguration.mutate({ id, ...data });
+  const handleUpdateTax = (_id: string, _data: any) => {
+    updateTaxConfiguration.mutate();
   };
 
-  const handleDeleteTax = (id: string) => {
-    deleteTaxConfiguration.mutate(id);
+  const handleDeleteTax = (_id: string) => {
+    deleteTaxConfiguration.mutate();
   };
 
   return (

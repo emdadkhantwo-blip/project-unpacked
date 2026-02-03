@@ -196,7 +196,7 @@ const HRPayroll = () => {
               {selectedPeriod && selectedPeriod.status === 'draft' && (
                 <Button 
                   variant="outline"
-                  onClick={() => finalizePayroll.mutate(selectedPeriod.id)}
+                  onClick={() => finalizePayroll.mutate()}
                   disabled={finalizePayroll.isPending}
                 >
                   <Lock className="h-4 w-4 mr-2" />
@@ -204,7 +204,7 @@ const HRPayroll = () => {
                 </Button>
               )}
               <GeneratePayrollDialog
-                onGenerate={(data) => generatePayroll.mutate(data)}
+                onGenerate={() => generatePayroll.mutate()}
                 isGenerating={generatePayroll.isPending}
                 existingPeriods={periods.map(p => ({ month: p.month, year: p.year }))}
               />

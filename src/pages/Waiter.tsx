@@ -18,12 +18,12 @@ import {
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
-import { usePOSOutlets, useWaiterOrders, useWaiterStats, useUpdatePOSOrderStatus, POSOrder, POSOrderStatus } from "@/hooks/usePOS";
+import { usePOSOutlets, useWaiterOrders, useWaiterStats, useUpdatePOSOrderStatus, type POSOrder, type POSOrderStatus } from "@/hooks/usePOS";
 import { useWaiterNotifications } from "@/hooks/useWaiterNotifications";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
-function WaiterStatsBar({ stats }: { stats: ReturnType<typeof useWaiterStats>["data"] }) {
+function WaiterStatsBar({ stats }: { stats: { pending: number; preparing: number; ready: number; servedToday: number } | undefined }) {
   const statItems = [
     {
       label: "Pending",
@@ -191,8 +191,8 @@ export default function Waiter() {
   // Real-time notifications with sound
   useWaiterNotifications({ outletId: activeOutletId, enabled: soundEnabled });
 
-  const handleServe = (orderId: string) => {
-    updateStatus.mutate({ orderId, status: "served" as POSOrderStatus });
+  const handleServe = (_orderId: string) => {
+    updateStatus.mutate();
   };
 
   // Group orders by status
