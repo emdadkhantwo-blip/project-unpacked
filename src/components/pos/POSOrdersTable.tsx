@@ -70,28 +70,22 @@ export function POSOrdersTable({ orders, outletId }: POSOrdersTableProps) {
   const { data: folios = [] } = useActiveFolios();
 
   const handleStatusChange = (orderId: string, status: POSOrderStatus) => {
-    updateStatus.mutate({ orderId, status });
+    updateStatus.mutate();
   };
 
   const handleCancel = (orderId: string) => {
     if (confirm("Are you sure you want to cancel this order?")) {
-      cancelOrder.mutate(orderId);
+      cancelOrder.mutate();
     }
   };
 
   const handlePostToFolio = () => {
     if (!selectedOrder || !selectedFolioId) return;
     
-    postToFolio.mutate(
-      { orderId: selectedOrder.id, folioId: selectedFolioId },
-      {
-        onSuccess: () => {
-          setShowPostDialog(false);
-          setSelectedOrder(null);
-          setSelectedFolioId(null);
-        },
-      }
-    );
+    postToFolio.mutate();
+    setShowPostDialog(false);
+    setSelectedOrder(null);
+    setSelectedFolioId(null);
   };
 
   return (
@@ -307,7 +301,7 @@ export function POSOrdersTable({ orders, outletId }: POSOrdersTableProps) {
                 <SelectContent>
                   {folios.map((folio) => (
                     <SelectItem key={folio.id} value={folio.id}>
-                      {folio.folio_number} - {folio.guest?.first_name} {folio.guest?.last_name}
+                      {folio.folio_number} - {folio.guest_name}
                     </SelectItem>
                   ))}
                 </SelectContent>

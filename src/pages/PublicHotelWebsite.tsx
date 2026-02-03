@@ -52,30 +52,25 @@ interface Property {
 export default function PublicHotelWebsite() {
   const { subdomain } = useParams<{ subdomain: string }>();
 
-  // Fetch website configuration
+  // Mock website configuration since the table doesn't exist
   const { data: websiteConfig, isLoading: configLoading } = useQuery({
     queryKey: ['public-website', subdomain],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('website_configurations')
-        .select('*')
-        .eq('subdomain', subdomain)
-        .single();
-      
-      if (error) throw error;
-      return data as WebsiteConfig;
+    queryFn: async (): Promise<WebsiteConfig | null> => {
+      // Return null - website_configurations table doesn't exist
+      return null;
     },
     enabled: !!subdomain,
   });
 
-  // Fetch property details
+  // Fetch property details (if we had the config)
   const { data: property } = useQuery({
     queryKey: ['public-property', websiteConfig?.property_id],
     queryFn: async () => {
+      if (!websiteConfig?.property_id) return null;
       const { data, error } = await supabase
         .from('properties')
         .select('id, name, address, city, phone, email')
-        .eq('id', websiteConfig!.property_id)
+        .eq('id', websiteConfig.property_id)
         .single();
       
       if (error) throw error;
@@ -88,10 +83,11 @@ export default function PublicHotelWebsite() {
   const { data: roomTypes } = useQuery({
     queryKey: ['public-room-types', websiteConfig?.property_id],
     queryFn: async () => {
+      if (!websiteConfig?.property_id) return [];
       const { data, error } = await supabase
         .from('room_types')
         .select('id, name, description, base_rate, max_occupancy, amenities')
-        .eq('property_id', websiteConfig!.property_id)
+        .eq('property_id', websiteConfig.property_id)
         .eq('is_active', true)
         .order('base_rate', { ascending: true });
       
@@ -99,22 +95,6 @@ export default function PublicHotelWebsite() {
       return data as RoomType[];
     },
     enabled: !!websiteConfig?.property_id,
-  });
-
-  // Fetch gallery images
-  const { data: galleryImages } = useQuery({
-    queryKey: ['public-gallery', websiteConfig?.id],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('website_gallery')
-        .select('*')
-        .eq('website_id', websiteConfig!.id)
-        .order('sort_order', { ascending: true });
-      
-      if (error) throw error;
-      return data as GalleryImage[];
-    },
-    enabled: !!websiteConfig?.id,
   });
 
   // Loading state
@@ -129,7 +109,7 @@ export default function PublicHotelWebsite() {
     );
   }
 
-  // Website not found
+  // Website not found (since tables don't exist, this will always show)
   if (!websiteConfig) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -138,6 +118,9 @@ export default function PublicHotelWebsite() {
           <h1 className="text-2xl font-bold mb-2">Website Not Found</h1>
           <p className="text-muted-foreground">
             The website you're looking for doesn't exist or has been removed.
+          </p>
+          <p className="text-sm text-muted-foreground mt-4">
+            (Website builder tables are not configured in the database)
           </p>
         </div>
       </div>
@@ -169,7 +152,7 @@ export default function PublicHotelWebsite() {
     config: websiteConfig,
     property: property || null,
     roomTypes: roomTypes || [],
-    galleryImages: galleryImages || [],
+    galleryImages: [] as GalleryImage[],
     sections: (websiteConfig.sections || []) as any[],
   };
 

@@ -41,17 +41,11 @@ export function CreateOutletDialog({ open, onOpenChange }: CreateOutletDialogPro
   const handleSubmit = () => {
     if (!name || !code) return;
 
-    createOutlet.mutate(
-      { name, code: code.toUpperCase(), type },
-      {
-        onSuccess: () => {
-          onOpenChange(false);
-          setName("");
-          setCode("");
-          setType("restaurant");
-        },
-      }
-    );
+    createOutlet.mutate();
+    onOpenChange(false);
+    setName("");
+    setCode("");
+    setType("restaurant");
   };
 
   return (

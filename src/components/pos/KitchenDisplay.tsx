@@ -15,7 +15,7 @@ interface KitchenDisplayProps {
 
 export function KitchenDisplay({ outletId }: KitchenDisplayProps) {
   const [soundEnabled, setSoundEnabled] = useState(true);
-  const { data: orders = [], isLoading } = useKitchenOrders(outletId);
+  const { data: orders = [], isLoading } = useKitchenOrders();
   const updateStatus = useUpdatePOSOrderStatus();
   
   // Real-time notifications with sound
@@ -25,7 +25,7 @@ export function KitchenDisplay({ outletId }: KitchenDisplayProps) {
   const preparingOrders = orders.filter((o) => o.status === "preparing");
 
   const handleStatusChange = (orderId: string, status: POSOrderStatus) => {
-    updateStatus.mutate({ orderId, status });
+    updateStatus.mutate();
   };
 
   const OrderCard = ({ order, isPreparing = false }: { order: typeof orders[0]; isPreparing?: boolean }) => {

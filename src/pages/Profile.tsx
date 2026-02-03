@@ -16,7 +16,6 @@ import { supabase } from '@/integrations/supabase/client';
 
 const profileSchema = z.object({
   full_name: z.string().min(2, 'Name must be at least 2 characters'),
-  email: z.string().email('Invalid email address').optional().or(z.literal('')),
   phone: z.string().optional(),
 });
 
@@ -44,8 +43,7 @@ export default function Profile() {
     resolver: zodResolver(profileSchema),
     defaultValues: {
       full_name: profile?.full_name || '',
-      email: profile?.email || '',
-      phone: '',
+      phone: profile?.phone || '',
     },
   });
 
@@ -67,7 +65,6 @@ export default function Profile() {
         .from('profiles')
         .update({
           full_name: data.full_name,
-          email: data.email || null,
           phone: data.phone || null,
           updated_at: new Date().toISOString(),
         })
@@ -313,19 +310,16 @@ export default function Profile() {
               <div className="space-y-2">
                 <Label htmlFor="email" className="flex items-center gap-2">
                   <Mail className="h-4 w-4" />
-                  Contact Email
+                  Email
                 </Label>
                 <Input
                   id="email"
                   type="email"
-                  {...profileForm.register('email')}
-                  placeholder="your@email.com"
+                  value={user?.email || ''}
+                  disabled
+                  className="bg-muted"
                 />
-                {profileForm.formState.errors.email && (
-                  <p className="text-xs text-destructive">
-                    {profileForm.formState.errors.email.message}
-                  </p>
-                )}
+                <p className="text-xs text-muted-foreground">Email is managed by authentication</p>
               </div>
 
               <div className="space-y-2">
@@ -439,10 +433,10 @@ export default function Profile() {
               </p>
             </div>
             <div className="space-y-1">
-              <p className="text-sm text-muted-foreground">Last Login</p>
+              <p className="text-sm text-muted-foreground">Last Updated</p>
               <p className="font-medium">
-                {profile?.last_login_at
-                  ? new Date(profile.last_login_at as any).toLocaleString()
+                {profile?.updated_at
+                  ? new Date(profile.updated_at as any).toLocaleString()
                   : 'Never'}
               </p>
             </div>

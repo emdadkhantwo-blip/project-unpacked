@@ -29,7 +29,7 @@ export function AssignShiftsDialog({
   staffName,
 }: AssignShiftsDialogProps) {
   const { currentProperty } = useTenant();
-  const { shifts, isLoading: isLoadingShifts } = useShifts(currentProperty?.id);
+  const { shifts, isLoading: isLoadingShifts } = useShifts();
   const {
     assignments,
     isLoading: isLoadingAssignments,
@@ -54,9 +54,9 @@ export function AssignShiftsDialog({
     );
 
     if (existingAssignment) {
-      removeShift(existingAssignment.id);
+      removeShift();
     } else {
-      assignShift({ shiftId, date: dateStr });
+      assignShift();
     }
   };
 
@@ -122,7 +122,7 @@ export function AssignShiftsDialog({
                           variant="ghost"
                           size="sm"
                           className="text-destructive hover:text-destructive"
-                          onClick={() => removeShift(assignment.id)}
+                          onClick={() => removeShift()}
                           disabled={isPending}
                         >
                           <X className="h-4 w-4 mr-1" />

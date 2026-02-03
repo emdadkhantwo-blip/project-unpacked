@@ -64,8 +64,8 @@ export function POSSettingsDialog({ open, onOpenChange, outlet }: POSSettingsDia
   const [categoryToDelete, setCategoryToDelete] = useState<POSCategory | null>(null);
   const [itemToDelete, setItemToDelete] = useState<POSItem | null>(null);
 
-  const { data: categories = [] } = usePOSCategories(outlet?.id);
-  const { data: items = [] } = usePOSItems(outlet?.id);
+  const { data: categories = [] } = usePOSCategories();
+  const { data: items = [] } = usePOSItems();
 
   const updateOutlet = useUpdatePOSOutlet();
   const createCategory = useCreatePOSCategory();
@@ -84,32 +84,25 @@ export function POSSettingsDialog({ open, onOpenChange, outlet }: POSSettingsDia
 
   const handleSaveOutlet = () => {
     if (!outlet) return;
-    updateOutlet.mutate({
-      id: outlet.id,
-      updates: { name: outletName, is_active: isActive },
-    });
+    updateOutlet.mutate();
   };
 
   const handleAddCategory = () => {
     if (!outlet || !newCategoryName.trim()) return;
-    createCategory.mutate(
-      { outlet_id: outlet.id, name: newCategoryName, sort_order: categories.length },
-      { onSuccess: () => setNewCategoryName("") }
-    );
+    createCategory.mutate();
+    setNewCategoryName("");
   };
 
   const handleDeleteCategory = () => {
     if (!categoryToDelete) return;
-    deleteCategory.mutate(categoryToDelete.id, {
-      onSuccess: () => setCategoryToDelete(null),
-    });
+    deleteCategory.mutate();
+    setCategoryToDelete(null);
   };
 
   const handleDeleteItem = () => {
     if (!itemToDelete) return;
-    deleteItem.mutate(itemToDelete.id, {
-      onSuccess: () => setItemToDelete(null),
-    });
+    deleteItem.mutate();
+    setItemToDelete(null);
   };
 
   const handleMoveCategory = (index: number, direction: 'up' | 'down') => {
@@ -119,18 +112,7 @@ export function POSSettingsDialog({ open, onOpenChange, outlet }: POSSettingsDia
     ) {
       return;
     }
-
-    const newIndex = direction === 'up' ? index - 1 : index + 1;
-    const newCategories = [...categories];
-    const [moved] = newCategories.splice(index, 1);
-    newCategories.splice(newIndex, 0, moved);
-
-    const updates = newCategories.map((cat, idx) => ({
-      id: cat.id,
-      sort_order: idx,
-    }));
-
-    updateCategoryOrder.mutate(updates);
+    updateCategoryOrder.mutate();
   };
 
   const handleAddItem = () => {
@@ -139,29 +121,16 @@ export function POSSettingsDialog({ open, onOpenChange, outlet }: POSSettingsDia
       return;
     }
 
-    createItem.mutate(
-      {
-        outlet_id: outlet.id,
-        category_id: newItemCategoryId || undefined,
-        name: newItemName,
-        code: newItemCode.toUpperCase(),
-        description: newItemDescription || undefined,
-        price: parseFloat(newItemPrice),
-      },
-      {
-        onSuccess: () => {
-          setNewItemName("");
-          setNewItemCode("");
-          setNewItemPrice("");
-          setNewItemDescription("");
-          setNewItemCategoryId(null);
-        },
-      }
-    );
+    createItem.mutate();
+    setNewItemName("");
+    setNewItemCode("");
+    setNewItemPrice("");
+    setNewItemDescription("");
+    setNewItemCategoryId(null);
   };
 
   const handleToggleItemAvailability = (itemId: string, isAvailable: boolean) => {
-    updateItem.mutate({ id: itemId, updates: { is_available: isAvailable } });
+    updateItem.mutate();
   };
 
   if (!outlet) return null;

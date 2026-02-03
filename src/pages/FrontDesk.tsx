@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { LogIn, LogOut, Hotel, Clock } from "lucide-react";
 import { useTenant } from "@/hooks/useTenant";
-import { useTodayArrivals, useTodayDepartures, useInHouseGuests } from "@/hooks/useFrontDesk";
+import { useTodayArrivals, useTodayDepartures, useInHouseGuests, type FrontDeskReservation } from "@/hooks/useFrontDesk";
 import { useCheckIn, type CheckoutResult } from "@/hooks/useReservations";
 import { useRoomStats } from "@/hooks/useRooms";
 import { useReservationNotifications } from "@/hooks/useReservationNotifications";
@@ -16,7 +16,6 @@ import { ReservationDetailDrawer } from "@/components/reservations/ReservationDe
 import { NewReservationDialog } from "@/components/reservations/NewReservationDialog";
 import { CheckoutSuccessModal, type CheckoutData } from "@/components/front-desk/CheckoutSuccessModal";
 import { CheckoutDialog } from "@/components/front-desk/CheckoutDialog";
-import type { FrontDeskReservation } from "@/hooks/useFrontDesk";
 import type { Reservation } from "@/hooks/useReservations";
 import { useNavigate } from "react-router-dom";
 
@@ -56,8 +55,22 @@ export default function FrontDesk() {
     return () => clearInterval(timer);
   }, []);
 
+  // Convert FrontDeskReservation to Reservation for drawer
+  const toReservation = (fdr: FrontDeskReservation): Reservation => ({
+    ...fdr,
+    status: fdr.status as Reservation["status"],
+    reservation_rooms: fdr.reservation_rooms.map(rr => ({
+      ...rr,
+      reservation_id: fdr.id,
+      room_type_id: rr.room_type?.id || "",
+      rate_per_night: 0,
+      adults: 1,
+      children: 0,
+    })),
+  });
+
   const handleViewDetails = (reservation: FrontDeskReservation) => {
-    setSelectedReservation(reservation);
+    setSelectedReservation(toReservation(reservation));
     setDrawerOpen(true);
   };
 
@@ -186,13 +199,16 @@ export default function FrontDesk() {
         onCheckIn={() => {
           if (selectedReservation) {
             setDrawerOpen(false);
-            handleCheckInClick(selectedReservation);
+            // Find original FrontDeskReservation
+            const fdr = [...arrivals, ...departures, ...inHouse].find(r => r.id === selectedReservation.id);
+            if (fdr) handleCheckInClick(fdr);
           }
         }}
         onCheckOut={() => {
           if (selectedReservation) {
             setDrawerOpen(false);
-            handleCheckOutClick(selectedReservation);
+            const fdr = [...arrivals, ...departures, ...inHouse].find(r => r.id === selectedReservation.id);
+            if (fdr) handleCheckOutClick(fdr);
           }
         }}
         onCancel={() => {

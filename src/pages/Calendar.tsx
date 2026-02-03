@@ -64,6 +64,10 @@ export default function Calendar() {
           reservation_rooms(
             id,
             room_id,
+            room_type_id,
+            rate_per_night,
+            adults,
+            children,
             room_type:room_types(id, name, code),
             room:rooms(id, room_number)
           )
@@ -79,7 +83,12 @@ export default function Calendar() {
           guest: data.guest as Reservation["guest"],
           reservation_rooms: (data.reservation_rooms || []).map((rr: any) => ({
             id: rr.id,
+            reservation_id: data.id,
             room_id: rr.room_id,
+            room_type_id: rr.room_type_id,
+            rate_per_night: rr.rate_per_night || 0,
+            adults: rr.adults || 1,
+            children: rr.children || 0,
             room_type: rr.room_type,
             room: rr.room,
           })),

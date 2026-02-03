@@ -24,13 +24,13 @@ export function ReferenceCard({ reference, onClick }: ReferenceCardProps) {
 
   const handleToggleStatus = (e: React.MouseEvent) => {
     e.stopPropagation();
-    toggleStatus.mutate({ id: reference.id, is_active: !reference.is_active });
+    toggleStatus.mutate();
   };
 
   const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (confirm("Are you sure you want to delete this reference?")) {
-      deleteReference.mutate(reference.id);
+      deleteReference.mutate();
     }
   };
 

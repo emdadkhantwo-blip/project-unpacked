@@ -71,15 +71,7 @@ export function CreateReferenceDialog({
 
   const onSubmit = async (data: ReferenceFormData) => {
     try {
-      await createReference.mutateAsync({
-        name: data.name,
-        code: data.code,
-        discount_type: data.discount_type,
-        discount_percentage: data.discount_type === "percentage" ? data.discount_percentage : 0,
-        fixed_discount: data.discount_type === "fixed" ? data.fixed_discount : 0,
-        is_active: data.is_active,
-        notes: data.notes,
-      });
+      await createReference.mutateAsync();
       form.reset();
       onOpenChange(false);
     } catch (error) {

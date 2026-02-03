@@ -96,16 +96,7 @@ export function ReferenceDetailDrawer({
     if (!reference) return;
 
     try {
-      await updateReference.mutateAsync({
-        id: reference.id,
-        name: data.name,
-        code: data.code,
-        discount_type: data.discount_type,
-        discount_percentage: data.discount_type === "percentage" ? data.discount_percentage : 0,
-        fixed_discount: data.discount_type === "fixed" ? data.fixed_discount : 0,
-        is_active: data.is_active,
-        notes: data.notes,
-      });
+      await updateReference.mutateAsync();
       setIsEditing(false);
     } catch (error) {
       // Error handled in mutation
@@ -115,7 +106,7 @@ export function ReferenceDetailDrawer({
   const handleDelete = async () => {
     if (!reference) return;
     try {
-      await deleteReference.mutateAsync(reference.id);
+      await deleteReference.mutateAsync();
       onOpenChange(false);
     } catch (error) {
       // Error handled in mutation
