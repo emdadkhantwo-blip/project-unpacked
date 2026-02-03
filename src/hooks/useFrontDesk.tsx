@@ -1,9 +1,48 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/hooks/useTenant";
-import type { Reservation } from "./useReservations";
 
-export type FrontDeskReservation = Reservation;
+// Local interface for front desk reservations to avoid type conflicts
+export interface FrontDeskReservationRoom {
+  id: string;
+  room_id: string | null;
+  room_type?: { id: string; name: string; code: string } | null;
+  room?: { id: string; room_number: string } | null;
+}
+
+export interface FrontDeskGuest {
+  id: string;
+  first_name: string;
+  last_name: string;
+  email: string | null;
+  phone: string | null;
+  is_vip: boolean | null;
+  corporate_account_id: string | null;
+}
+
+export interface FrontDeskReservation {
+  id: string;
+  confirmation_number: string;
+  property_id: string;
+  tenant_id: string;
+  guest_id: string;
+  status: string | null;
+  check_in_date: string;
+  check_out_date: string;
+  actual_check_in: string | null;
+  actual_check_out: string | null;
+  adults: number | null;
+  children: number | null;
+  total_amount: number | null;
+  source: string | null;
+  notes: string | null;
+  special_requests: string | null;
+  created_at: string;
+  updated_at: string;
+  created_by: string | null;
+  guest: FrontDeskGuest | null;
+  reservation_rooms: FrontDeskReservationRoom[];
+}
 
 export function useTodayArrivals() {
   const { currentProperty } = useTenant();
@@ -35,9 +74,9 @@ export function useTodayArrivals() {
 
       if (error) throw error;
 
-      return (data || []).map((res) => ({
+      return (data || []).map((res: any) => ({
         ...res,
-        guest: res.guest as FrontDeskReservation["guest"],
+        guest: res.guest as FrontDeskGuest | null,
         reservation_rooms: (res.reservation_rooms || []).map((rr: any) => ({
           id: rr.id,
           room_id: rr.room_id,
@@ -47,7 +86,7 @@ export function useTodayArrivals() {
       }));
     },
     enabled: !!currentPropertyId,
-    refetchInterval: 30000, // Refresh every 30 seconds
+    refetchInterval: 30000,
   });
 }
 
@@ -81,9 +120,9 @@ export function useTodayDepartures() {
 
       if (error) throw error;
 
-      return (data || []).map((res) => ({
+      return (data || []).map((res: any) => ({
         ...res,
-        guest: res.guest as FrontDeskReservation["guest"],
+        guest: res.guest as FrontDeskGuest | null,
         reservation_rooms: (res.reservation_rooms || []).map((rr: any) => ({
           id: rr.id,
           room_id: rr.room_id,
@@ -124,9 +163,9 @@ export function useInHouseGuests() {
 
       if (error) throw error;
 
-      return (data || []).map((res) => ({
+      return (data || []).map((res: any) => ({
         ...res,
-        guest: res.guest as FrontDeskReservation["guest"],
+        guest: res.guest as FrontDeskGuest | null,
         reservation_rooms: (res.reservation_rooms || []).map((rr: any) => ({
           id: rr.id,
           room_id: rr.room_id,

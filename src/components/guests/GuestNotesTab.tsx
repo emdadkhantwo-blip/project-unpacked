@@ -2,8 +2,6 @@ import { useState } from "react";
 import { format } from "date-fns";
 import {
   MessageSquare,
-  Pin,
-  PinOff,
   Trash2,
   Plus,
   AlertCircle,
@@ -17,7 +15,6 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   useGuestNotes,
-  useToggleGuestNotePinned,
   useDeleteGuestNote,
   type GuestNote,
 } from "@/hooks/useGuestNotes";
@@ -32,7 +29,6 @@ export function GuestNotesTab({ guest }: GuestNotesTabProps) {
   const [addDialogOpen, setAddDialogOpen] = useState(false);
 
   const { data: notes = [], isLoading } = useGuestNotes(guest.id);
-  const togglePinned = useToggleGuestNotePinned();
   const deleteNote = useDeleteGuestNote();
 
   const getNoteTypeIcon = (type: GuestNote["note_type"]) => {
@@ -81,14 +77,6 @@ export function GuestNotesTab({ guest }: GuestNotesTabProps) {
     }
   };
 
-  const handleTogglePinned = (note: GuestNote) => {
-    togglePinned.mutate({
-      noteId: note.id,
-      guestId: guest.id,
-      isPinned: !note.is_pinned,
-    });
-  };
-
   const handleDelete = (note: GuestNote) => {
     if (confirm("Are you sure you want to delete this note?")) {
       deleteNote.mutate({ noteId: note.id, guestId: guest.id });
@@ -132,34 +120,13 @@ export function GuestNotesTab({ guest }: GuestNotesTabProps) {
       ) : (
         <div className="space-y-3">
           {notes.map((note) => (
-            <Card
-              key={note.id}
-              className={note.is_pinned ? "border-primary/50 bg-primary/5" : ""}
-            >
+            <Card key={note.id}>
               <CardContent className="p-4">
                 <div className="flex items-start justify-between gap-2 mb-2">
                   <div className="flex items-center gap-2 flex-wrap">
                     {getNoteTypeBadge(note.note_type)}
-                    {note.is_pinned && (
-                      <Badge variant="outline" className="text-xs">
-                        <Pin className="h-3 w-3 mr-1" />
-                        Pinned
-                      </Badge>
-                    )}
                   </div>
                   <div className="flex items-center gap-1">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-7 w-7"
-                      onClick={() => handleTogglePinned(note)}
-                    >
-                      {note.is_pinned ? (
-                        <PinOff className="h-3.5 w-3.5" />
-                      ) : (
-                        <Pin className="h-3.5 w-3.5" />
-                      )}
-                    </Button>
                     <Button
                       variant="ghost"
                       size="icon"
@@ -171,7 +138,7 @@ export function GuestNotesTab({ guest }: GuestNotesTabProps) {
                   </div>
                 </div>
 
-                <p className="text-sm whitespace-pre-wrap">{note.content}</p>
+                <p className="text-sm whitespace-pre-wrap">{note.note}</p>
 
                 <div className="flex items-center gap-3 mt-3 text-xs text-muted-foreground">
                   <div className="flex items-center gap-1">
