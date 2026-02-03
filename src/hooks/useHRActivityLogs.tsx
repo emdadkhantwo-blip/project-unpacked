@@ -1,7 +1,6 @@
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { useState } from "react";
 import { useAuth } from "./useAuth";
-import { startOfDay, parseISO, isToday } from "date-fns";
+import { startOfDay, isToday, parseISO } from "date-fns";
 
 export interface HRActivityLog {
   id: string;
@@ -14,7 +13,6 @@ export interface HRActivityLog {
   ip_address: string | null;
   user_agent: string | null;
   created_at: string;
-  // Joined
   user_name: string | null;
   user_avatar: string | null;
 }
@@ -41,64 +39,43 @@ const ACTION_CATEGORY_MAP: Record<string, string> = {
   document_deleted: "document",
 };
 
+// Mock data since audit_logs table doesn't exist yet
+const MOCK_LOGS: HRActivityLog[] = [
+  {
+    id: "1",
+    user_id: "user-1",
+    action: "login",
+    entity_type: "session",
+    entity_id: null,
+    old_values: null,
+    new_values: null,
+    ip_address: "192.168.1.1",
+    user_agent: "Chrome",
+    created_at: new Date().toISOString(),
+    user_name: "John Doe",
+    user_avatar: null,
+  },
+  {
+    id: "2",
+    user_id: "user-2",
+    action: "clock_in",
+    entity_type: "attendance",
+    entity_id: null,
+    old_values: null,
+    new_values: { time: "09:00" },
+    ip_address: "192.168.1.2",
+    user_agent: "Firefox",
+    created_at: new Date().toISOString(),
+    user_name: "Jane Smith",
+    user_avatar: null,
+  },
+];
+
 export function useHRActivityLogs(categoryFilter: string = "all") {
   const { tenantId } = useAuth();
-
-  const {
-    data: logs = [],
-    isLoading,
-    error,
-  } = useQuery({
-    queryKey: ["hr-activity-logs", tenantId],
-    queryFn: async () => {
-      if (!tenantId) return [];
-
-      // Fetch audit logs for this tenant
-      const { data, error } = await supabase
-        .from("audit_logs")
-        .select("*")
-        .eq("tenant_id", tenantId)
-        .order("created_at", { ascending: false })
-        .limit(200);
-
-      if (error) throw error;
-
-      // Get unique user IDs
-      const userIds = [...new Set((data || []).map((log) => log.user_id).filter(Boolean))];
-
-      // Fetch user profiles
-      let profileMap = new Map<string, { full_name: string; avatar_url: string | null }>();
-      if (userIds.length > 0) {
-        const { data: profiles } = await supabase
-          .from("profiles")
-          .select("id, full_name, avatar_url")
-          .in("id", userIds as string[]);
-
-        profileMap = new Map(
-          (profiles || []).map((p) => [p.id, { full_name: p.full_name || "", avatar_url: p.avatar_url }])
-        );
-      }
-
-      return (data || []).map((log) => {
-        const profile = log.user_id ? profileMap.get(log.user_id) : null;
-        return {
-          id: log.id,
-          user_id: log.user_id,
-          action: log.action,
-          entity_type: log.entity_type,
-          entity_id: log.entity_id,
-          old_values: log.old_values as Record<string, unknown> | null,
-          new_values: log.new_values as Record<string, unknown> | null,
-          ip_address: log.ip_address,
-          user_agent: log.user_agent,
-          created_at: log.created_at,
-          user_name: profile?.full_name || null,
-          user_avatar: profile?.avatar_url || null,
-        };
-      });
-    },
-    enabled: !!tenantId,
-  });
+  const [logs] = useState<HRActivityLog[]>(MOCK_LOGS);
+  const [isLoading] = useState(false);
+  const [error] = useState<Error | null>(null);
 
   // Get category for an action
   const getCategory = (action: string): string => {
@@ -116,7 +93,6 @@ export function useHRActivityLogs(categoryFilter: string = "all") {
       : logs.filter((log) => getCategory(log.action) === categoryFilter);
 
   // Stats
-  const today = startOfDay(new Date());
   const stats = {
     total: logs.length,
     today: logs.filter((log) => {

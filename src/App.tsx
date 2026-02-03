@@ -163,389 +163,475 @@ const PublicRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
-const AppRoutes = () => (
-  <Routes>
-    {/* Public routes */}
-    <Route
-      path="/"
-      element={
-        <PublicRoute>
-          <Index />
-        </PublicRoute>
-      }
-    />
-    <Route
-      path="/auth"
-      element={
-        <PublicRoute>
-          <Auth />
-        </PublicRoute>
-      }
-    />
+// AppContent contains the routes and is rendered inside AuthProvider
+const AppContent = () => {
+  // These hooks are now safely called inside AuthProvider
+  const { user, isLoading, roles, rolesLoading, isSuperAdmin, hasAnyRole } = useAuth();
 
-    {/* Protected routes with DashboardLayout */}
-    <Route
-      path="/dashboard"
-      element={
-        <ProtectedRoute>
-          <DashboardLayout title="Dashboard">
-            <Dashboard />
-          </DashboardLayout>
-        </ProtectedRoute>
-      }
-    />
-    <Route
-      path="/rooms"
-      element={
-        <ProtectedRoute>
-          <DashboardLayout title="Rooms">
-            <Rooms />
-          </DashboardLayout>
-        </ProtectedRoute>
-      }
-    />
-    <Route
-      path="/reservations"
-      element={
-        <ProtectedRoute>
-          <DashboardLayout title="Reservations">
-            <Reservations />
-          </DashboardLayout>
-        </ProtectedRoute>
-      }
-    />
-    <Route
-      path="/calendar"
-      element={
-        <ProtectedRoute>
-          <DashboardLayout title="Calendar">
-            <Calendar />
-          </DashboardLayout>
-        </ProtectedRoute>
-      }
-    />
-    <Route
-      path="/front-desk"
-      element={
-        <RoleProtectedRoute allowedRoles={['front_desk']} route="/front-desk">
-          <DashboardLayout title="Front Desk">
-            <FrontDesk />
-          </DashboardLayout>
-        </RoleProtectedRoute>
-      }
-    />
-    <Route
-      path="/housekeeping"
-      element={
-        <RoleProtectedRoute allowedRoles={['housekeeping', 'front_desk']} route="/housekeeping">
-          <DashboardLayout title="Housekeeping">
-            <Housekeeping />
-          </DashboardLayout>
-        </RoleProtectedRoute>
-      }
-    />
-    <Route
-      path="/guests"
-      element={
-        <RoleProtectedRoute allowedRoles={['front_desk']} route="/guests">
-          <DashboardLayout title="Guests">
-            <Guests />
-          </DashboardLayout>
-        </RoleProtectedRoute>
-      }
-    />
-    <Route
-      path="/maintenance"
-      element={
-        <RoleProtectedRoute allowedRoles={['maintenance', 'front_desk']} route="/maintenance">
-          <DashboardLayout title="Maintenance">
-            <Maintenance />
-          </DashboardLayout>
-        </RoleProtectedRoute>
-      }
-    />
-    <Route
-      path="/folios"
-      element={
-        <RoleProtectedRoute allowedRoles={['front_desk', 'accountant', 'night_auditor']} route="/folios">
-          <DashboardLayout title="Folios">
-            <Folios />
-          </DashboardLayout>
-        </RoleProtectedRoute>
-      }
-    />
-    <Route
-      path="/reports"
-      element={
-        <RoleProtectedRoute allowedRoles={['accountant', 'night_auditor']} route="/reports">
-          <DashboardLayout title="Reports">
-            <Reports />
-          </DashboardLayout>
-        </RoleProtectedRoute>
-      }
-    />
-    <Route
-      path="/properties"
-      element={
-        <RoleProtectedRoute allowedRoles={[]} route="/properties">
-          <DashboardLayout title="Properties">
-            <Properties />
-          </DashboardLayout>
-        </RoleProtectedRoute>
-      }
-    />
-    <Route
-      path="/settings/rates"
-      element={
-        <RoleProtectedRoute allowedRoles={[]} route="/settings/rates">
-          <DashboardLayout title="Rates & Packages">
-            <SettingsRates />
-          </DashboardLayout>
-        </RoleProtectedRoute>
-      }
-    />
-    <Route
-      path="/settings"
-      element={
-        <RoleProtectedRoute allowedRoles={[]} route="/settings">
-          <DashboardLayout title="Settings">
-            <Settings />
-          </DashboardLayout>
-        </RoleProtectedRoute>
-      }
-    />
-    <Route
-      path="/pos"
-      element={
-        <RoleProtectedRoute allowedRoles={['kitchen', 'waiter']} route="/pos">
-          <POS />
-        </RoleProtectedRoute>
-      }
-    />
-    <Route
-      path="/kitchen"
-      element={
-        <RoleProtectedRoute allowedRoles={['kitchen']} route="/kitchen">
-          <Kitchen />
-        </RoleProtectedRoute>
-      }
-    />
-    <Route
-      path="/waiter"
-      element={
-        <RoleProtectedRoute allowedRoles={['waiter']} route="/waiter">
-          <Waiter />
-        </RoleProtectedRoute>
-      }
-    />
-    <Route
-      path="/night-audit"
-      element={
-        <RoleProtectedRoute allowedRoles={['night_auditor', 'accountant']} route="/night-audit">
-          <NightAudit />
-        </RoleProtectedRoute>
-      }
-    />
-    <Route
-      path="/corporate"
-      element={
-        <RoleProtectedRoute allowedRoles={['front_desk']} route="/corporate">
-          <DashboardLayout title="Corporate Accounts">
-            <CorporateAccounts />
-          </DashboardLayout>
-        </RoleProtectedRoute>
-      }
-    />
-    <Route
-      path="/corporate/statements"
-      element={
-        <RoleProtectedRoute allowedRoles={['front_desk', 'accountant']} route="/corporate/statements">
-          <DashboardLayout title="Corporate Statements">
-            <CorporateStatements />
-          </DashboardLayout>
-        </RoleProtectedRoute>
-      }
-    />
-    <Route
-      path="/references"
-      element={
-        <RoleProtectedRoute allowedRoles={[]} route="/references">
-          <DashboardLayout title="References">
-            <References />
-          </DashboardLayout>
-        </RoleProtectedRoute>
-      }
-    />
-    <Route
-      path="/admin/tenants"
-      element={
-        <RoleProtectedRoute allowedRoles={[]} route="/admin/tenants">
-          <DashboardLayout title="Tenant Management">
-            <AdminTenants />
-          </DashboardLayout>
-        </RoleProtectedRoute>
-      }
-    />
-    <Route
-      path="/admin/applications"
-      element={
-        <RoleProtectedRoute allowedRoles={[]} route="/admin/applications">
-          <DashboardLayout title="Applications">
-            <AdminApplications />
-          </DashboardLayout>
-        </RoleProtectedRoute>
-      }
-    />
-    <Route
-      path="/admin/security"
-      element={
-        <RoleProtectedRoute allowedRoles={[]} route="/admin/security">
-          <DashboardLayout title="Security Dashboard">
-            <AdminSecurity />
-          </DashboardLayout>
-        </RoleProtectedRoute>
-      }
-    />
-    <Route
-      path="/profile"
-      element={
-        <ProtectedRoute>
-          <DashboardLayout title="Profile">
-            <Profile />
-          </DashboardLayout>
-        </ProtectedRoute>
-      }
-    />
+  // Public route wrapper (redirects to role-appropriate dashboard if logged in)
+  const PublicRouteWrapper = ({ children }: { children: React.ReactNode }) => {
+    if (isLoading) {
+      return (
+        <div className="flex h-screen items-center justify-center bg-background">
+          <div className="text-muted-foreground">Loading...</div>
+        </div>
+      );
+    }
 
-    {/* HR Management Routes */}
-    <Route
-      path="/hr/staff"
-      element={
-        <RoleProtectedRoute allowedRoles={[]} route="/hr/staff">
-          <DashboardLayout title="HR Staff Directory">
-            <HRStaff />
-          </DashboardLayout>
-        </RoleProtectedRoute>
-      }
-    />
-    <Route
-      path="/hr/roles"
-      element={
-        <RoleProtectedRoute allowedRoles={[]} route="/hr/roles">
-          <DashboardLayout title="Roles & Permissions">
-            <HRRoles />
-          </DashboardLayout>
-        </RoleProtectedRoute>
-      }
-    />
-    <Route
-      path="/hr/attendance"
-      element={
-        <RoleProtectedRoute allowedRoles={[]} route="/hr/attendance">
-          <DashboardLayout title="Attendance">
-            <HRAttendance />
-          </DashboardLayout>
-        </RoleProtectedRoute>
-      }
-    />
-    <Route
-      path="/hr/shifts"
-      element={
-        <RoleProtectedRoute allowedRoles={[]} route="/hr/shifts">
-          <DashboardLayout title="Shift Scheduling">
-            <HRShifts />
-          </DashboardLayout>
-        </RoleProtectedRoute>
-      }
-    />
-    <Route
-      path="/hr/leave"
-      element={
-        <RoleProtectedRoute allowedRoles={[]} route="/hr/leave">
-          <DashboardLayout title="Leave Management">
-            <HRLeave />
-          </DashboardLayout>
-        </RoleProtectedRoute>
-      }
-    />
-    <Route
-      path="/hr/payroll"
-      element={
-        <RoleProtectedRoute allowedRoles={[]} route="/hr/payroll">
-          <DashboardLayout title="Payroll">
-            <HRPayroll />
-          </DashboardLayout>
-        </RoleProtectedRoute>
-      }
-    />
-    <Route
-      path="/hr/overtime"
-      element={
-        <RoleProtectedRoute allowedRoles={[]} route="/hr/overtime">
-          <DashboardLayout title="Overtime">
-            <HROvertime />
-          </DashboardLayout>
-        </RoleProtectedRoute>
-      }
-    />
-    <Route
-      path="/hr/performance"
-      element={
-        <RoleProtectedRoute allowedRoles={[]} route="/hr/performance">
-          <DashboardLayout title="Performance">
-            <HRPerformance />
-          </DashboardLayout>
-        </RoleProtectedRoute>
-      }
-    />
-    <Route
-      path="/hr/documents"
-      element={
-        <RoleProtectedRoute allowedRoles={[]} route="/hr/documents">
-          <DashboardLayout title="HR Documents">
-            <HRDocuments />
-          </DashboardLayout>
-        </RoleProtectedRoute>
-      }
-    />
-    <Route
-      path="/hr/activity"
-      element={
-        <RoleProtectedRoute allowedRoles={[]} route="/hr/activity">
-          <DashboardLayout title="HR Activity Logs">
-            <HRActivity />
-          </DashboardLayout>
-        </RoleProtectedRoute>
-      }
-    />
-    <Route
-      path="/settings/taxes"
-      element={
-        <RoleProtectedRoute allowedRoles={[]} route="/settings/taxes">
-          <DashboardLayout title="Tax Configuration">
-            <SettingsTaxes />
-          </DashboardLayout>
-        </RoleProtectedRoute>
-      }
-    />
-    <Route
-      path="/settings/website"
-      element={
-        <RoleProtectedRoute allowedRoles={[]} route="/settings/website">
-          <DashboardLayout title="Website Builder">
-            <SettingsWebsite />
-          </DashboardLayout>
-        </RoleProtectedRoute>
-      }
-    />
+    if (user) {
+      const targetDashboard = getRoleDashboard(roles);
+      return <Navigate to={targetDashboard} replace />;
+    }
 
-    {/* Public Hotel Website Route (no auth required) */}
-    <Route path="/site/:subdomain" element={<PublicHotelWebsite />} />
+    return <>{children}</>;
+  };
 
-    {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-    <Route path="*" element={<NotFound />} />
-  </Routes>
-);
+  // Protected route wrapper (basic auth check)
+  const ProtectedRouteWrapper = ({ children }: { children: React.ReactNode }) => {
+    if (isLoading) {
+      return (
+        <div className="flex h-screen items-center justify-center bg-background">
+          <div className="text-muted-foreground">Loading...</div>
+        </div>
+      );
+    }
+
+    if (!user) {
+      return <Navigate to="/auth" replace />;
+    }
+
+    return <>{children}</>;
+  };
+
+  // Role-protected route wrapper
+  const RoleProtectedRouteWrapper = ({ 
+    children, 
+    route 
+  }: { 
+    children: React.ReactNode; 
+    route: string;
+  }) => {
+    if (isLoading || rolesLoading) {
+      return (
+        <div className="flex h-screen items-center justify-center bg-background">
+          <div className="text-muted-foreground">Loading...</div>
+        </div>
+      );
+    }
+
+    if (!user) {
+      return <Navigate to="/auth" replace />;
+    }
+
+    if (roles.length === 0 && !rolesLoading) {
+      return (
+        <div className="flex h-screen items-center justify-center bg-background">
+          <div className="text-muted-foreground">Loading permissions...</div>
+        </div>
+      );
+    }
+
+    if (isSuperAdmin || hasAnyRole(['owner', 'manager'])) {
+      return <>{children}</>;
+    }
+
+    const canAccess = roles.some(role => {
+      const allowedRoutes = ROLE_ROUTES[role] || [];
+      return allowedRoutes.includes('*') || allowedRoutes.includes(route);
+    });
+
+    if (!canAccess) {
+      const targetDashboard = getRoleDashboard(roles);
+      return <Navigate to={targetDashboard} replace />;
+    }
+
+    return <>{children}</>;
+  };
+
+  return (
+    <Routes>
+      {/* Public routes */}
+      <Route
+        path="/"
+        element={
+          <PublicRouteWrapper>
+            <Index />
+          </PublicRouteWrapper>
+        }
+      />
+      <Route
+        path="/auth"
+        element={
+          <PublicRouteWrapper>
+            <Auth />
+          </PublicRouteWrapper>
+        }
+      />
+
+      {/* Protected routes with DashboardLayout */}
+      <Route
+        path="/dashboard"
+        element={
+          <ProtectedRouteWrapper>
+            <DashboardLayout title="Dashboard">
+              <Dashboard />
+            </DashboardLayout>
+          </ProtectedRouteWrapper>
+        }
+      />
+      <Route
+        path="/rooms"
+        element={
+          <ProtectedRouteWrapper>
+            <DashboardLayout title="Rooms">
+              <Rooms />
+            </DashboardLayout>
+          </ProtectedRouteWrapper>
+        }
+      />
+      <Route
+        path="/reservations"
+        element={
+          <ProtectedRouteWrapper>
+            <DashboardLayout title="Reservations">
+              <Reservations />
+            </DashboardLayout>
+          </ProtectedRouteWrapper>
+        }
+      />
+      <Route
+        path="/calendar"
+        element={
+          <ProtectedRouteWrapper>
+            <DashboardLayout title="Calendar">
+              <Calendar />
+            </DashboardLayout>
+          </ProtectedRouteWrapper>
+        }
+      />
+      <Route
+        path="/front-desk"
+        element={
+          <RoleProtectedRouteWrapper route="/front-desk">
+            <DashboardLayout title="Front Desk">
+              <FrontDesk />
+            </DashboardLayout>
+          </RoleProtectedRouteWrapper>
+        }
+      />
+      <Route
+        path="/housekeeping"
+        element={
+          <RoleProtectedRouteWrapper route="/housekeeping">
+            <DashboardLayout title="Housekeeping">
+              <Housekeeping />
+            </DashboardLayout>
+          </RoleProtectedRouteWrapper>
+        }
+      />
+      <Route
+        path="/guests"
+        element={
+          <RoleProtectedRouteWrapper route="/guests">
+            <DashboardLayout title="Guests">
+              <Guests />
+            </DashboardLayout>
+          </RoleProtectedRouteWrapper>
+        }
+      />
+      <Route
+        path="/maintenance"
+        element={
+          <RoleProtectedRouteWrapper route="/maintenance">
+            <DashboardLayout title="Maintenance">
+              <Maintenance />
+            </DashboardLayout>
+          </RoleProtectedRouteWrapper>
+        }
+      />
+      <Route
+        path="/folios"
+        element={
+          <RoleProtectedRouteWrapper route="/folios">
+            <DashboardLayout title="Folios">
+              <Folios />
+            </DashboardLayout>
+          </RoleProtectedRouteWrapper>
+        }
+      />
+      <Route
+        path="/reports"
+        element={
+          <RoleProtectedRouteWrapper route="/reports">
+            <DashboardLayout title="Reports">
+              <Reports />
+            </DashboardLayout>
+          </RoleProtectedRouteWrapper>
+        }
+      />
+      <Route
+        path="/properties"
+        element={
+          <RoleProtectedRouteWrapper route="/properties">
+            <DashboardLayout title="Properties">
+              <Properties />
+            </DashboardLayout>
+          </RoleProtectedRouteWrapper>
+        }
+      />
+      <Route
+        path="/settings/rates"
+        element={
+          <RoleProtectedRouteWrapper route="/settings/rates">
+            <DashboardLayout title="Rates & Packages">
+              <SettingsRates />
+            </DashboardLayout>
+          </RoleProtectedRouteWrapper>
+        }
+      />
+      <Route
+        path="/settings"
+        element={
+          <RoleProtectedRouteWrapper route="/settings">
+            <DashboardLayout title="Settings">
+              <Settings />
+            </DashboardLayout>
+          </RoleProtectedRouteWrapper>
+        }
+      />
+      <Route
+        path="/pos"
+        element={
+          <RoleProtectedRouteWrapper route="/pos">
+            <POS />
+          </RoleProtectedRouteWrapper>
+        }
+      />
+      <Route
+        path="/kitchen"
+        element={
+          <RoleProtectedRouteWrapper route="/kitchen">
+            <Kitchen />
+          </RoleProtectedRouteWrapper>
+        }
+      />
+      <Route
+        path="/waiter"
+        element={
+          <RoleProtectedRouteWrapper route="/waiter">
+            <Waiter />
+          </RoleProtectedRouteWrapper>
+        }
+      />
+      <Route
+        path="/night-audit"
+        element={
+          <RoleProtectedRouteWrapper route="/night-audit">
+            <NightAudit />
+          </RoleProtectedRouteWrapper>
+        }
+      />
+      <Route
+        path="/corporate"
+        element={
+          <RoleProtectedRouteWrapper route="/corporate">
+            <DashboardLayout title="Corporate Accounts">
+              <CorporateAccounts />
+            </DashboardLayout>
+          </RoleProtectedRouteWrapper>
+        }
+      />
+      <Route
+        path="/corporate/statements"
+        element={
+          <RoleProtectedRouteWrapper route="/corporate/statements">
+            <DashboardLayout title="Corporate Statements">
+              <CorporateStatements />
+            </DashboardLayout>
+          </RoleProtectedRouteWrapper>
+        }
+      />
+      <Route
+        path="/references"
+        element={
+          <RoleProtectedRouteWrapper route="/references">
+            <DashboardLayout title="References">
+              <References />
+            </DashboardLayout>
+          </RoleProtectedRouteWrapper>
+        }
+      />
+      <Route
+        path="/admin/tenants"
+        element={
+          <RoleProtectedRouteWrapper route="/admin/tenants">
+            <DashboardLayout title="Tenant Management">
+              <AdminTenants />
+            </DashboardLayout>
+          </RoleProtectedRouteWrapper>
+        }
+      />
+      <Route
+        path="/admin/applications"
+        element={
+          <RoleProtectedRouteWrapper route="/admin/applications">
+            <DashboardLayout title="Applications">
+              <AdminApplications />
+            </DashboardLayout>
+          </RoleProtectedRouteWrapper>
+        }
+      />
+      <Route
+        path="/admin/security"
+        element={
+          <RoleProtectedRouteWrapper route="/admin/security">
+            <DashboardLayout title="Security Dashboard">
+              <AdminSecurity />
+            </DashboardLayout>
+          </RoleProtectedRouteWrapper>
+        }
+      />
+      <Route
+        path="/profile"
+        element={
+          <ProtectedRouteWrapper>
+            <DashboardLayout title="Profile">
+              <Profile />
+            </DashboardLayout>
+          </ProtectedRouteWrapper>
+        }
+      />
+
+      {/* HR Management Routes */}
+      <Route
+        path="/hr/staff"
+        element={
+          <RoleProtectedRouteWrapper route="/hr/staff">
+            <DashboardLayout title="HR Staff Directory">
+              <HRStaff />
+            </DashboardLayout>
+          </RoleProtectedRouteWrapper>
+        }
+      />
+      <Route
+        path="/hr/roles"
+        element={
+          <RoleProtectedRouteWrapper route="/hr/roles">
+            <DashboardLayout title="Roles & Permissions">
+              <HRRoles />
+            </DashboardLayout>
+          </RoleProtectedRouteWrapper>
+        }
+      />
+      <Route
+        path="/hr/attendance"
+        element={
+          <RoleProtectedRouteWrapper route="/hr/attendance">
+            <DashboardLayout title="Attendance">
+              <HRAttendance />
+            </DashboardLayout>
+          </RoleProtectedRouteWrapper>
+        }
+      />
+      <Route
+        path="/hr/shifts"
+        element={
+          <RoleProtectedRouteWrapper route="/hr/shifts">
+            <DashboardLayout title="Shift Scheduling">
+              <HRShifts />
+            </DashboardLayout>
+          </RoleProtectedRouteWrapper>
+        }
+      />
+      <Route
+        path="/hr/leave"
+        element={
+          <RoleProtectedRouteWrapper route="/hr/leave">
+            <DashboardLayout title="Leave Management">
+              <HRLeave />
+            </DashboardLayout>
+          </RoleProtectedRouteWrapper>
+        }
+      />
+      <Route
+        path="/hr/payroll"
+        element={
+          <RoleProtectedRouteWrapper route="/hr/payroll">
+            <DashboardLayout title="Payroll">
+              <HRPayroll />
+            </DashboardLayout>
+          </RoleProtectedRouteWrapper>
+        }
+      />
+      <Route
+        path="/hr/overtime"
+        element={
+          <RoleProtectedRouteWrapper route="/hr/overtime">
+            <DashboardLayout title="Overtime">
+              <HROvertime />
+            </DashboardLayout>
+          </RoleProtectedRouteWrapper>
+        }
+      />
+      <Route
+        path="/hr/performance"
+        element={
+          <RoleProtectedRouteWrapper route="/hr/performance">
+            <DashboardLayout title="Performance">
+              <HRPerformance />
+            </DashboardLayout>
+          </RoleProtectedRouteWrapper>
+        }
+      />
+      <Route
+        path="/hr/documents"
+        element={
+          <RoleProtectedRouteWrapper route="/hr/documents">
+            <DashboardLayout title="HR Documents">
+              <HRDocuments />
+            </DashboardLayout>
+          </RoleProtectedRouteWrapper>
+        }
+      />
+      <Route
+        path="/hr/activity"
+        element={
+          <RoleProtectedRouteWrapper route="/hr/activity">
+            <DashboardLayout title="HR Activity Logs">
+              <HRActivity />
+            </DashboardLayout>
+          </RoleProtectedRouteWrapper>
+        }
+      />
+      <Route
+        path="/settings/taxes"
+        element={
+          <RoleProtectedRouteWrapper route="/settings/taxes">
+            <DashboardLayout title="Tax Configuration">
+              <SettingsTaxes />
+            </DashboardLayout>
+          </RoleProtectedRouteWrapper>
+        }
+      />
+      <Route
+        path="/settings/website"
+        element={
+          <RoleProtectedRouteWrapper route="/settings/website">
+            <DashboardLayout title="Website Builder">
+              <SettingsWebsite />
+            </DashboardLayout>
+          </RoleProtectedRouteWrapper>
+        }
+      />
+
+      {/* Public Hotel Website Route (no auth required) */}
+      <Route path="/site/:subdomain" element={<PublicHotelWebsite />} />
+
+      {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+      <Route path="*" element={<NotFound />} />
+    </Routes>
+  );
+};
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -556,7 +642,7 @@ const App = () => (
         <BrowserRouter>
           <AuthProvider>
             <TenantProvider>
-              <AppRoutes />
+              <AppContent />
             </TenantProvider>
           </AuthProvider>
         </BrowserRouter>

@@ -2,11 +2,34 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/hooks/useTenant";
 import { toast } from "sonner";
-import type { Guest as GuestType } from "@/types/hotel";
+import type { Json } from "@/integrations/supabase/types";
 
-export type Guest = GuestType & {
+export interface Guest {
+  id: string;
+  tenant_id: string;
+  first_name: string;
+  last_name: string;
+  email: string | null;
+  phone: string | null;
+  id_type: string | null;
+  id_number: string | null;
+  date_of_birth: string | null;
+  nationality: string | null;
+  address: string | null;
+  city: string | null;
+  country: string | null;
+  notes: string | null;
+  is_vip: boolean | null;
+  is_blacklisted: boolean | null;
+  blacklist_reason: string | null;
+  preferences: Record<string, unknown> | null;
+  total_stays: number | null;
+  total_revenue: number | null;
+  corporate_account_id: string | null;
+  created_at: string;
+  updated_at: string;
   has_corporate_accounts?: boolean;
-};
+}
 
 export type GuestInsert = {
   first_name: string;
@@ -31,6 +54,15 @@ export type GuestUpdate = Partial<GuestInsert> & {
   blacklist_reason?: string | null;
   corporate_account_id?: string | null;
 };
+
+// Helper to convert Json to Record
+function parsePreferences(pref: Json | null): Record<string, unknown> | null {
+  if (pref === null || pref === undefined) return null;
+  if (typeof pref === "object" && !Array.isArray(pref)) {
+    return pref as Record<string, unknown>;
+  }
+  return null;
+}
 
 export function useGuests(searchQuery?: string) {
   const { tenant } = useTenant();
@@ -57,11 +89,11 @@ export function useGuests(searchQuery?: string) {
 
       if (error) throw error;
       
-      // Map to include has_corporate_accounts flag
       return (data || []).map((guest: any) => ({
         ...guest,
+        preferences: parsePreferences(guest.preferences),
         has_corporate_accounts: (guest.guest_corporate_accounts?.length || 0) > 0 || !!guest.corporate_account_id,
-        guest_corporate_accounts: undefined, // Remove the nested array from the response
+        guest_corporate_accounts: undefined,
       }));
     },
     enabled: !!tenantId,
@@ -138,7 +170,10 @@ export function useCreateGuest() {
         .single();
 
       if (error) throw error;
-      return data;
+      return {
+        ...data,
+        preferences: parsePreferences(data.preferences),
+      };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["guests", tenantId] });
@@ -172,7 +207,10 @@ export function useUpdateGuest() {
         .single();
 
       if (error) throw error;
-      return data;
+      return {
+        ...data,
+        preferences: parsePreferences(data.preferences),
+      };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["guests", tenantId] });
