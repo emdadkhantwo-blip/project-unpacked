@@ -31,6 +31,7 @@ export type Database = {
           room_count: number | null
           status: string | null
           updated_at: string
+          username: string | null
         }
         Insert: {
           contact_name?: string | null
@@ -48,6 +49,7 @@ export type Database = {
           room_count?: number | null
           status?: string | null
           updated_at?: string
+          username?: string | null
         }
         Update: {
           contact_name?: string | null
@@ -65,6 +67,7 @@ export type Database = {
           room_count?: number | null
           status?: string | null
           updated_at?: string
+          username?: string | null
         }
         Relationships: []
       }
