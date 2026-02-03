@@ -23,6 +23,7 @@ export type Database = {
           full_name: string
           hotel_name: string
           id: string
+          logo_url: string | null
           notes: string | null
           phone: string | null
           property_count: number | null
@@ -38,6 +39,7 @@ export type Database = {
           full_name: string
           hotel_name: string
           id?: string
+          logo_url?: string | null
           notes?: string | null
           phone?: string | null
           property_count?: number | null
@@ -53,6 +55,7 @@ export type Database = {
           full_name?: string
           hotel_name?: string
           id?: string
+          logo_url?: string | null
           notes?: string | null
           phone?: string | null
           property_count?: number | null
