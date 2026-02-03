@@ -200,7 +200,10 @@ export interface Reservation {
   total_amount: number;
   notes: string | null;
   special_requests: string | null;
+  internal_notes?: string | null;
   source: string | null;
+  actual_check_in?: string | null;
+  actual_check_out?: string | null;
   created_by: string | null;
   created_at: string;
   updated_at: string;

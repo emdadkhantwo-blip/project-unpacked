@@ -43,17 +43,9 @@ export function ApplicationCard({ application, onView }: ApplicationCardProps) {
         <div className="flex items-start gap-4">
           {/* Logo/Avatar */}
           <div className="flex-shrink-0">
-            {application.logo_url ? (
-              <img
-                src={application.logo_url}
-                alt={application.hotel_name}
-                className="h-14 w-14 rounded-xl object-cover border"
-              />
-            ) : (
-              <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-br from-purple-100 to-indigo-100 dark:from-purple-900/30 dark:to-indigo-900/30">
-                <Building2 className="h-7 w-7 text-purple-600 dark:text-purple-400" />
-              </div>
-            )}
+            <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-br from-purple-100 to-indigo-100 dark:from-purple-900/30 dark:to-indigo-900/30">
+              <Building2 className="h-7 w-7 text-purple-600 dark:text-purple-400" />
+            </div>
           </div>
 
           {/* Info */}

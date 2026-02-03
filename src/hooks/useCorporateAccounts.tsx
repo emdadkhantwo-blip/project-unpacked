@@ -6,16 +6,16 @@ import { useToast } from "@/hooks/use-toast";
 export interface CorporateAccount {
   id: string;
   tenant_id: string;
-  company_name: string;
-  account_code: string;
-  contact_name: string | null;
-  contact_email: string | null;
-  contact_phone: string | null;
-  billing_address: string | null;
+  name: string;
+  code: string;
+  contact_person: string | null;
+  email: string | null;
+  phone: string | null;
+  address: string | null;
   discount_percentage: number;
   credit_limit: number;
   current_balance: number;
-  payment_terms: string;
+  payment_terms: number;
   notes: string | null;
   is_active: boolean;
   created_at: string;
@@ -25,15 +25,15 @@ export interface CorporateAccount {
 }
 
 export interface CorporateAccountFormData {
-  company_name: string;
-  account_code: string;
-  contact_name?: string;
-  contact_email?: string;
-  contact_phone?: string;
-  billing_address?: string;
+  name: string;
+  code: string;
+  contact_person?: string;
+  email?: string;
+  phone?: string;
+  address?: string;
   discount_percentage?: number;
   credit_limit?: number;
-  payment_terms?: string;
+  payment_terms?: number;
   notes?: string;
   is_active?: boolean;
 }
@@ -50,15 +50,14 @@ export function useCorporateAccounts() {
         .from("corporate_accounts")
         .select("*")
         .eq("tenant_id", tenant.id)
-        .order("company_name", { ascending: true });
+        .order("name", { ascending: true });
 
       if (error) throw error;
 
       // Get linked guest counts from the join table
       const { data: guestCounts } = await supabase
         .from("guest_corporate_accounts")
-        .select("corporate_account_id")
-        .eq("tenant_id", tenant.id);
+        .select("corporate_account_id");
 
       const countMap = new Map<string, number>();
       guestCounts?.forEach((g) => {
@@ -68,7 +67,7 @@ export function useCorporateAccounts() {
         }
       });
 
-      return data.map((account) => ({
+      return (data || []).map((account) => ({
         ...account,
         linked_guests_count: countMap.get(account.id) || 0,
       })) as CorporateAccount[];
@@ -111,8 +110,7 @@ export function useCorporateAccountGuests(accountId: string | undefined) {
       const { data: links, error: linksError } = await supabase
         .from("guest_corporate_accounts")
         .select("guest_id")
-        .eq("corporate_account_id", accountId)
-        .eq("tenant_id", tenant.id);
+        .eq("corporate_account_id", accountId);
 
       if (linksError) throw linksError;
       if (!links || links.length === 0) return [];
@@ -145,9 +143,8 @@ export function useGuestCorporateAccounts(guestId: string | undefined) {
       // Fetch corporate account IDs from the join table
       const { data: links, error: linksError } = await supabase
         .from("guest_corporate_accounts")
-        .select("corporate_account_id, is_primary")
-        .eq("guest_id", guestId)
-        .eq("tenant_id", tenant.id);
+        .select("corporate_account_id")
+        .eq("guest_id", guestId);
 
       if (linksError) throw linksError;
       if (!links || links.length === 0) return [];
@@ -160,18 +157,11 @@ export function useGuestCorporateAccounts(guestId: string | undefined) {
         .in("id", accountIds)
         .eq("tenant_id", tenant.id)
         .eq("is_active", true)
-        .order("company_name", { ascending: true });
+        .order("name", { ascending: true });
 
       if (error) throw error;
 
-      // Add is_primary flag to each account
-      return data.map((account) => {
-        const link = links.find((l) => l.corporate_account_id === account.id);
-        return {
-          ...account,
-          is_primary: link?.is_primary || false,
-        };
-      }) as (CorporateAccount & { is_primary: boolean })[];
+      return (data || []) as CorporateAccount[];
     },
     enabled: !!guestId && !!tenant,
   });
@@ -312,7 +302,6 @@ export function useDeleteCorporateAccount() {
 // Link guest to corporate account using the join table
 export function useLinkGuestToCorporateAccount() {
   const queryClient = useQueryClient();
-  const { tenant } = useTenant();
   const { toast } = useToast();
 
   return useMutation({
@@ -323,8 +312,6 @@ export function useLinkGuestToCorporateAccount() {
       guestId: string;
       accountId: string | null;
     }) => {
-      if (!tenant) throw new Error("No tenant");
-
       if (accountId === null) {
         // Unlink: remove from join table
         const { error } = await supabase
@@ -334,16 +321,12 @@ export function useLinkGuestToCorporateAccount() {
 
         if (error) throw error;
       } else {
-        // Link: insert into join table (upsert to handle duplicates)
+        // Link: insert into join table
         const { error } = await supabase
           .from("guest_corporate_accounts")
-          .upsert({
+          .insert({
             guest_id: guestId,
             corporate_account_id: accountId,
-            tenant_id: tenant.id,
-            is_primary: false,
-          }, {
-            onConflict: "guest_id,corporate_account_id",
           });
 
         if (error) throw error;

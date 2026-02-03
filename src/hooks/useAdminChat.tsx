@@ -1,5 +1,4 @@
 import { useState, useCallback, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { useTenant } from './useTenant';
 import { useAuth } from './useAuth';
 
@@ -13,19 +12,8 @@ export interface ChatMessage {
   toolResults?: Array<{ success: boolean; data?: any; error?: string }>;
 }
 
-interface DbChatMessage {
-  id: string;
-  session_id: string;
-  user_id: string;
-  tenant_id: string;
-  role: string;
-  content: string;
-  tool_calls: any;
-  tool_results: any;
-  created_at: string;
-}
-
 const SESSION_KEY = 'beechat_session';
+const MESSAGES_KEY = 'beechat_messages';
 
 export function useAdminChat() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -33,7 +21,7 @@ export function useAdminChat() {
   const [sessionId, setSessionId] = useState<string>('');
   const [isHistoryLoaded, setIsHistoryLoaded] = useState(false);
   const { tenant, properties, currentProperty } = useTenant();
-  const { session, user } = useAuth();
+  const { session } = useAuth();
 
   // Initialize or load session
   useEffect(() => {
@@ -47,66 +35,39 @@ export function useAdminChat() {
     }
   }, []);
 
-  // Load chat history when session is ready
+  // Load chat history from localStorage
   useEffect(() => {
-    if (!sessionId || !user?.id || isHistoryLoaded) return;
-
-    const loadHistory = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('chat_messages')
-          .select('*')
-          .eq('session_id', sessionId)
-          .order('created_at', { ascending: true });
-
-        if (error) {
-          console.error('Error loading chat history:', error);
-          return;
-        }
-
-        if (data && data.length > 0) {
-          const loadedMessages: ChatMessage[] = (data as DbChatMessage[]).map((msg) => ({
-            id: msg.id,
-            role: msg.role as 'user' | 'assistant',
-            content: msg.content,
-            timestamp: new Date(msg.created_at),
-            toolCalls: msg.tool_calls,
-            toolResults: msg.tool_results
-          }));
-          setMessages(loadedMessages);
-        }
-        setIsHistoryLoaded(true);
-      } catch (err) {
-        console.error('Failed to load chat history:', err);
-        setIsHistoryLoaded(true);
-      }
-    };
-
-    loadHistory();
-  }, [sessionId, user?.id, isHistoryLoaded]);
-
-  // Save message to database
-  const saveMessage = useCallback(async (
-    message: ChatMessage,
-    toolCalls?: any[],
-    toolResults?: any[]
-  ) => {
-    if (!user?.id || !tenant?.id || !sessionId) return;
+    if (!sessionId || isHistoryLoaded) return;
 
     try {
-      await supabase.from('chat_messages').insert({
-        session_id: sessionId,
-        user_id: user.id,
-        tenant_id: tenant.id,
-        role: message.role,
-        content: message.content,
-        tool_calls: toolCalls || null,
-        tool_results: toolResults || null
-      });
+      const stored = localStorage.getItem(`${MESSAGES_KEY}_${sessionId}`);
+      if (stored) {
+        const loadedMessages = JSON.parse(stored) as ChatMessage[];
+        // Convert timestamp strings back to Date objects
+        const messagesWithDates = loadedMessages.map(m => ({
+          ...m,
+          timestamp: new Date(m.timestamp)
+        }));
+        setMessages(messagesWithDates);
+      }
+      setIsHistoryLoaded(true);
     } catch (err) {
-      console.error('Failed to save message:', err);
+      console.error('Failed to load chat history:', err);
+      setIsHistoryLoaded(true);
     }
-  }, [user?.id, tenant?.id, sessionId]);
+  }, [sessionId, isHistoryLoaded]);
+
+  // Save messages to localStorage
+  const saveMessages = useCallback((msgs: ChatMessage[]) => {
+    if (!sessionId) return;
+    try {
+      // Filter out loading messages before saving
+      const messagesWithoutLoading = msgs.filter(m => !m.isLoading);
+      localStorage.setItem(`${MESSAGES_KEY}_${sessionId}`, JSON.stringify(messagesWithoutLoading));
+    } catch (err) {
+      console.error('Failed to save messages:', err);
+    }
+  }, [sessionId]);
 
   const sendMessage = useCallback(async (content: string) => {
     if (!content.trim() || isLoading) return;
@@ -118,11 +79,10 @@ export function useAdminChat() {
       timestamp: new Date()
     };
 
-    setMessages(prev => [...prev, userMessage]);
+    const newMessages = [...messages, userMessage];
+    setMessages(newMessages);
+    saveMessages(newMessages);
     setIsLoading(true);
-
-    // Save user message
-    saveMessage(userMessage);
 
     // Add loading placeholder
     const loadingId = crypto.randomUUID();
@@ -172,7 +132,7 @@ export function useAdminChat() {
           }
 
           // Rate limited - wait with exponential backoff
-          const delay = 1000 * Math.pow(2, attempt); // 1s, 2s, 4s
+          const delay = 1000 * Math.pow(2, attempt);
           console.log(`Rate limited (attempt ${attempt + 1}/${maxRetries}), waiting ${delay}ms...`);
           await new Promise(resolve => setTimeout(resolve, delay));
         } catch (err: any) {
@@ -211,12 +171,11 @@ export function useAdminChat() {
       };
 
       // Replace loading message with actual response
-      setMessages(prev => prev.map(m => 
-        m.id === loadingId ? assistantMessage : m
-      ));
-
-      // Save assistant message
-      saveMessage(assistantMessage, data.toolCalls, data.toolResults);
+      setMessages(prev => {
+        const updated = prev.map(m => m.id === loadingId ? assistantMessage : m);
+        saveMessages(updated);
+        return updated;
+      });
 
     } catch (error: any) {
       console.error('Chat error:', error);
@@ -230,28 +189,20 @@ export function useAdminChat() {
       };
 
       // Replace loading message with error
-      setMessages(prev => prev.map(m => 
-        m.id === loadingId ? errorMessage : m
-      ));
-
-      // Save error message
-      saveMessage(errorMessage);
+      setMessages(prev => {
+        const updated = prev.map(m => m.id === loadingId ? errorMessage : m);
+        saveMessages(updated);
+        return updated;
+      });
     } finally {
       setIsLoading(false);
     }
-  }, [messages, isLoading, tenant, properties, session, saveMessage]);
+  }, [messages, isLoading, tenant, properties, currentProperty, session, saveMessages]);
 
-  const clearHistory = useCallback(async () => {
-    if (!sessionId) return;
-
-    try {
-      // Delete messages from database
-      await supabase
-        .from('chat_messages')
-        .delete()
-        .eq('session_id', sessionId);
-    } catch (err) {
-      console.error('Failed to clear history from database:', err);
+  const clearHistory = useCallback(() => {
+    // Clear local storage
+    if (sessionId) {
+      localStorage.removeItem(`${MESSAGES_KEY}_${sessionId}`);
     }
 
     // Clear local state
@@ -264,7 +215,7 @@ export function useAdminChat() {
     setIsHistoryLoaded(false);
   }, [sessionId]);
 
-  const startNewSession = useCallback(async () => {
+  const startNewSession = useCallback(() => {
     // Generate new session without clearing old messages
     const newSession = crypto.randomUUID();
     localStorage.setItem(SESSION_KEY, newSession);

@@ -6,15 +6,14 @@ export interface AdminApplication {
   id: string;
   full_name: string;
   hotel_name: string;
-  username: string;
-  password: string;
   email: string;
   phone: string | null;
-  logo_url: string | null;
+  contact_name: string | null;
+  room_count: number | null;
+  property_count: number | null;
+  current_software: string | null;
+  notes: string | null;
   status: "pending" | "approved" | "rejected";
-  rejection_reason: string | null;
-  reviewed_by: string | null;
-  reviewed_at: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -29,7 +28,7 @@ export function useAdminApplications() {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      return data as AdminApplication[];
+      return (data || []) as AdminApplication[];
     },
   });
 }
@@ -72,15 +71,11 @@ export function useRejectApplication() {
 
   return useMutation({
     mutationFn: async ({ applicationId, reason }: { applicationId: string; reason?: string }) => {
-      const { data: userData } = await supabase.auth.getUser();
-      
       const { error } = await supabase
         .from("admin_applications")
         .update({
           status: "rejected",
-          rejection_reason: reason || null,
-          reviewed_by: userData.user?.id,
-          reviewed_at: new Date().toISOString(),
+          notes: reason || null,
         })
         .eq("id", applicationId);
 
